@@ -1,0 +1,252 @@
+
+        *******************************************
+        Date : 2018-8-30 19:53:16
+        TypeError: formData[key].trim is not a function 
+
+        Stack trace : TypeError: formData[key].trim is not a function
+    at new Form (/home/djole/Desktop/data/Node_JS_Projects/node-chat/libs/form.js:10:37)
+    at Promise (/home/djole/Desktop/data/Node_JS_Projects/node-chat/utils/register/validateForm.js:5:18)
+    at new Promise (<anonymous>)
+    at validateForm (/home/djole/Desktop/data/Node_JS_Projects/node-chat/utils/register/validateForm.js:4:10)
+    at router.post (/home/djole/Desktop/data/Node_JS_Projects/node-chat/routes/register.js:170:24)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/route.js:131:13)
+    at Route.dispatch (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/route.js:112:3)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:277:22
+    at Function.process_params (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:330:12)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:271:10)
+    at Function.handle (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:176:3)
+    at router (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:46:12)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:312:13) 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-8-30 19:55:16
+        TypeError: formData[key].trim is not a function 
+
+        Stack trace : TypeError: formData[key].trim is not a function
+    at new Form (/home/djole/Desktop/data/Node_JS_Projects/node-chat/libs/form.js:10:37)
+    at Promise (/home/djole/Desktop/data/Node_JS_Projects/node-chat/utils/register/validateForm.js:5:18)
+    at new Promise (<anonymous>)
+    at validateForm (/home/djole/Desktop/data/Node_JS_Projects/node-chat/utils/register/validateForm.js:4:10)
+    at router.post (/home/djole/Desktop/data/Node_JS_Projects/node-chat/routes/register.js:170:24)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/route.js:131:13)
+    at Route.dispatch (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/route.js:112:3)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:277:22
+    at Function.process_params (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:330:12)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:271:10)
+    at Function.handle (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:176:3)
+    at router (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:46:12)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:312:13) 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-8-30 19:57:19
+        TypeError: Cannot read property 'toString' of undefined 
+
+        Stack trace : TypeError: Cannot read property 'toString' of undefined
+    at Execute.toPacket (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/packets/execute.js:47:40)
+    at Execute.start (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/commands/execute.js:50:40)
+    at Execute.Command.execute (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/commands/command.js:39:20)
+    at PoolConnection.Connection.handlePacket (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:417:28)
+    at PoolConnection.Connection.addCommand (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:440:10)
+    at PreparedStatementInfo.execute (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/commands/prepare.js:58:27)
+    at PreparedStatementInfo.tryCatcher (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/bluebird/js/release/util.js:16:23)
+    at PreparedStatementInfo.ret [as executeAsync] (eval at makeNodePromisifiedEval (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/bluebird/js/release/promisify.js:184:12), <anonymous>:13:39)
+    at Promise (/home/djole/Desktop/data/Node_JS_Projects/node-chat/models/model.js:249:37)
+    at <anonymous>
+    at process._tickCallback (internal/process/next_tick.js:188:7) 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-8-30 19:57:19
+        ReferenceError: next is not defined 
+
+        Stack trace : ReferenceError: next is not defined
+    at router.post (/home/djole/Desktop/data/Node_JS_Projects/node-chat/routes/register.js:222:7)
+    at <anonymous> 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-8-30 20:09:10
+        ReferenceError: form is not defined 
+
+        Stack trace : ReferenceError: form is not defined
+    at router.post (/home/djole/Desktop/data/Node_JS_Projects/node-chat/routes/register.js:165:16)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/route.js:131:13)
+    at Route.dispatch (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/route.js:112:3)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:277:22
+    at Function.process_params (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:330:12)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:271:10)
+    at Function.handle (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:176:3)
+    at router (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:46:12)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:312:13)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:280:7
+    at Function.process_params (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:330:12)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:271:10)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express-rate-limiter/index.js:110:20 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-8-30 20:09:45
+        ReferenceError: form is not defined 
+
+        Stack trace : ReferenceError: form is not defined
+    at router.post (/home/djole/Desktop/data/Node_JS_Projects/node-chat/routes/register.js:164:16)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/route.js:131:13)
+    at Route.dispatch (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/route.js:112:3)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:277:22
+    at Function.process_params (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:330:12)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:271:10)
+    at Function.handle (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:176:3)
+    at router (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:46:12)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:312:13)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:280:7
+    at Function.process_params (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:330:12)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:271:10)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express-rate-limiter/index.js:110:20 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-8-31 09:11:29
+        Error: Invalid login: 535-5.7.8 Username and Password not accepted. Learn more at
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials h206-v6sm443131wmf.25 - gsmtp 
+
+        Stack trace : Error: Invalid login: 535-5.7.8 Username and Password not accepted. Learn more at
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials h206-v6sm443131wmf.25 - gsmtp
+    at SMTPConnection._formatError (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:557:19)
+    at SMTPConnection._actionAUTHComplete (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:1253:34)
+    at SMTPConnection._responseActions.push.str (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:340:26)
+    at SMTPConnection._processResponse (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:706:20)
+    at SMTPConnection._onData (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:509:14)
+    at TLSSocket._socket.on.chunk (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:461:47)
+    at TLSSocket.emit (events.js:159:13)
+    at addChunk (_stream_readable.js:265:12)
+    at readableAddChunk (_stream_readable.js:252:11)
+    at TLSSocket.Readable.push (_stream_readable.js:209:10)
+    at TLSWrap.onread (net.js:598:20) 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-8-31 09:17:26
+        Error: Invalid login: 535-5.7.8 Username and Password not accepted. Learn more at
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials r140-v6sm4951627wmd.7 - gsmtp 
+
+        Stack trace : Error: Invalid login: 535-5.7.8 Username and Password not accepted. Learn more at
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials r140-v6sm4951627wmd.7 - gsmtp
+    at SMTPConnection._formatError (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:557:19)
+    at SMTPConnection._actionAUTHComplete (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:1253:34)
+    at SMTPConnection._responseActions.push.str (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:340:26)
+    at SMTPConnection._processResponse (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:706:20)
+    at SMTPConnection._onData (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:509:14)
+    at TLSSocket._socket.on.chunk (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:461:47)
+    at TLSSocket.emit (events.js:159:13)
+    at addChunk (_stream_readable.js:265:12)
+    at readableAddChunk (_stream_readable.js:252:11)
+    at TLSSocket.Readable.push (_stream_readable.js:209:10)
+    at TLSWrap.onread (net.js:598:20) 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-8-31 09:18:48
+        Error: Invalid login: 535-5.7.8 Username and Password not accepted. Learn more at
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials e133-v6sm6919661wma.33 - gsmtp 
+
+        Stack trace : Error: Invalid login: 535-5.7.8 Username and Password not accepted. Learn more at
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials e133-v6sm6919661wma.33 - gsmtp
+    at SMTPConnection._formatError (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:557:19)
+    at SMTPConnection._actionAUTHComplete (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:1253:34)
+    at SMTPConnection._responseActions.push.str (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:340:26)
+    at SMTPConnection._processResponse (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:706:20)
+    at SMTPConnection._onData (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:509:14)
+    at TLSSocket._socket.on.chunk (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:461:47)
+    at TLSSocket.emit (events.js:159:13)
+    at addChunk (_stream_readable.js:265:12)
+    at readableAddChunk (_stream_readable.js:252:11)
+    at TLSSocket.Readable.push (_stream_readable.js:209:10)
+    at TLSWrap.onread (net.js:598:20) 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-8-31 09:21:07
+        Error: Invalid login: 535-5.7.8 Username and Password not accepted. Learn more at
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials 139-v6sm5882648wmp.4 - gsmtp 
+
+        Stack trace : Error: Invalid login: 535-5.7.8 Username and Password not accepted. Learn more at
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials 139-v6sm5882648wmp.4 - gsmtp
+    at SMTPConnection._formatError (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:557:19)
+    at SMTPConnection._actionAUTHComplete (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:1253:34)
+    at SMTPConnection._responseActions.push.str (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:340:26)
+    at SMTPConnection._processResponse (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:706:20)
+    at SMTPConnection._onData (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:509:14)
+    at TLSSocket._socket.on.chunk (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:461:47)
+    at TLSSocket.emit (events.js:159:13)
+    at addChunk (_stream_readable.js:265:12)
+    at readableAddChunk (_stream_readable.js:252:11)
+    at TLSSocket.Readable.push (_stream_readable.js:209:10)
+    at TLSWrap.onread (net.js:598:20) 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-8-31 09:22:06
+        Error: Invalid login: 535-5.7.8 Username and Password not accepted. Learn more at
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials g7-v6sm6780002wrw.30 - gsmtp 
+
+        Stack trace : Error: Invalid login: 535-5.7.8 Username and Password not accepted. Learn more at
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials g7-v6sm6780002wrw.30 - gsmtp
+    at SMTPConnection._formatError (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:557:19)
+    at SMTPConnection._actionAUTHComplete (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:1253:34)
+    at SMTPConnection._responseActions.push.str (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:340:26)
+    at SMTPConnection._processResponse (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:706:20)
+    at SMTPConnection._onData (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:509:14)
+    at TLSSocket._socket.on.chunk (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:461:47)
+    at TLSSocket.emit (events.js:159:13)
+    at addChunk (_stream_readable.js:265:12)
+    at readableAddChunk (_stream_readable.js:252:11)
+    at TLSSocket.Readable.push (_stream_readable.js:209:10)
+    at TLSWrap.onread (net.js:598:20) 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-8-31 09:22:43
+        Error: Invalid login: 535-5.7.8 Username and Password not accepted. Learn more at
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d1-v6sm7018521wrc.52 - gsmtp 
+
+        Stack trace : Error: Invalid login: 535-5.7.8 Username and Password not accepted. Learn more at
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d1-v6sm7018521wrc.52 - gsmtp
+    at SMTPConnection._formatError (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:557:19)
+    at SMTPConnection._actionAUTHComplete (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:1253:34)
+    at SMTPConnection._responseActions.push.str (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:340:26)
+    at SMTPConnection._processResponse (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:706:20)
+    at SMTPConnection._onData (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:509:14)
+    at TLSSocket._socket.on.chunk (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/nodemailer/lib/smtp-connection/index.js:461:47)
+    at TLSSocket.emit (events.js:159:13)
+    at addChunk (_stream_readable.js:265:12)
+    at readableAddChunk (_stream_readable.js:252:11)
+    at TLSSocket.Readable.push (_stream_readable.js:209:10)
+    at TLSWrap.onread (net.js:598:20) 
+
+        *******************************************
+      
