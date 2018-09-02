@@ -7,33 +7,17 @@ class TokenModel extends Model {
     this.tableName = tableName;
   }
 
-  insertOrUpdateToken({ userID:id_user , token }) {
-    return new Promise(async(resolve,reject) => {
-      try {
-        const [ tokenExists ] = await this.select({
-          where:{ id_user }
-        });
-
-        if ( tokenExists ) {
-          const updateToken = await this.update({
-            columns:['token','token_date'],
-            values:[token,'now()'],
-            where:{ id_user }
-          });
-
-          resolve(updateToken);
-        } else {
-          const insertNewToken = await this.insert({
-            token,
-            id_user
-          });
-
-          resolve(insertNewToken);
-        }
-      } catch(e) {
-        reject(e);
-      }
-    });
+  async insertOrUpdateToken({ userID:id_user,token }) {
+    try {
+      await this.deleteMultiple({
+        confirm:true,
+        where:{ id_user }
+      });
+      
+      return await this.insert({ token,id_user });
+    } catch(e) {
+      throw e;
+    }
   }
 }
 

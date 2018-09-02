@@ -8,6 +8,7 @@ const
   validateForm  = require('../utils/register/validateForm'),
   genError      = require('../utils/generateError'),
   Logger        = require('../libs/Logger'),
+  Password      = require('../libs/password'),
   JSONvalidator = require('jsonschema').Validator,
   router        = express.Router();
 
@@ -17,27 +18,29 @@ const sendVerificationEmail
 const checkIfUsernameOrEmailExists 
   = require('../utils/register/checkIfUsernameOrEmailExists');
 
-router.get('/verify_token',async(req,res,next) => {
-  const Token = new TokenModel();
-  
-  const token = Types.isArray(req.query.token)
-    ? req.query.token[0]
-    : req.query.token;
-
-  if ( !token ) {
-    return res.send('Token is missing, request another one...');
-  }
-
-  const sql = `
-    SELECT t.id_user,token,account_activated
-    FROM token t
-    INNER JOIN user u
-    ON u.id_user = t.id_user
-    WHERE token = ? AND DATEDIFF(now(),token_date) < 7
-    LIMIT 1
-  `;
-
+router.get('/verify_token',async(req,res) => {
   try {
+    const Token = new TokenModel();
+
+    if ( typeof req.query.token !== 'string' ) {
+      return res.send('Token is missing, request another one...');
+    }
+  
+    const token = req.query.token;
+
+    if ( !token ) {
+      return res.send('Token is missing, request another one...');
+    }
+
+    const sql = `
+      SELECT t.id_user,token,account_activated
+      FROM token t
+      INNER JOIN user u
+      ON u.id_user = t.id_user
+      WHERE token = ? AND DATEDIFF(now(),token_date) < 7
+      LIMIT 1
+    `;
+
     const userTokenResult = await Token.executeCustomQuery(sql,[token]);
 
     if ( userTokenResult.length > 1 ) {
@@ -74,19 +77,9 @@ router.get('/verify_token',async(req,res,next) => {
     res.send('Your account is activated, you can now log in...');
 
   } catch(e) {
-    const error = new Error();
-    
-    error.message = 'Error while activating your account,please try again...';
-    next(error);
+    Logger.log(e,'register');
 
-    try {
-      const Errors = new ErrorsModel();
- 
-      await Errors.insertNewError(
-        'Error while activating user account with token :' + token,e
-      );
-
-    } catch(e) { }
+    return res.send('Error while verifing your token, please try again!');
   }
 });
 
@@ -121,23 +114,12 @@ router.post('/checkemailusername',async (req,res,next) => {
 
 
 
-/* 
- * Kontroler za registraciju
- * Treba da se proveri da li su polja prazna , da li se sifre poklapaju
- * , da li vec postoji username i password.
- * Ako je sve u redu , upisati korisnika u bazu, generisati token za verifikaciju
- * e-maila, poslati token na mail...
-*/
+
 router.post('/',async (req,res,next) => {
   try {
-    const {
-      username,
-      email,
-    } = req.body;
+    const { username,email } = req.body;
   
-    const validator = new JSONvalidator();
-  
-    const isValidJSON = validator.validate(req.body,{
+    const isValidRequest = new JSONvalidator().validate(req.body,{
       type:'object',
       properties:{
         username:{ type:'string' },
@@ -157,9 +139,9 @@ router.post('/',async (req,res,next) => {
       },
       required:['username','password','confirmPassword','email','deviceInfo'],
       additionalProperties:false
-    });
+    }).valid
 
-    if ( !isValidJSON.valid) {
+    if ( !isValidRequest) {
       return res.json({
         errors:form.errors,
         errorCode:'REGISTER_DATA_NOT_VALID'
@@ -194,37 +176,82 @@ router.post('/',async (req,res,next) => {
       return res.json(usernameAndEmailInfo);
     }
 
+    const
+      User   = new UserModel(),
+      Token  = new TokenModel(),
+      result = await User.insertNewUser(Object.assign(form.cleanData,{ device_info:JSON.stringify(deviceInfo) })),
+      token  = uuidV4(),
+      userID = result.insertId;
+
+    await Token.insertOrUpdateToken({ userID,token });
+
     try {
-      const
-        User   = new UserModel(),
-        Token  = new TokenModel(),
-        result = await User.insertNewUser(Object.assign(form.cleanData,{ device_info:JSON.stringify(deviceInfo) })),
-        token  = uuidV4(),
-        userID = result.insertId;
-
-      await Token.insertOrUpdateToken({
-        userID , token
-      });
-
-      await sendVerificationEmail({
-        to:email,
-        token
-      });
-
-      res.json({
-        success:true
-      });
-      
+      await sendVerificationEmail({ to:email,token });
     } catch(e) {
       Logger.log(e,'register');
 
-      return next(genError('REGISTER_FATAL_ERROR'));
+      return next(genError('REGISTER_EMAIL_SEND_ERROR'));
     }
 
+    return res.json({ success:true });
   } catch(e) {
     Logger.log(e,'register');
 
     return next(genError('REGISTER_FATAL_ERROR'));
+  }
+});
+
+
+
+router.post('/resend_confirmation_email',async(req,res,next) => {
+  try {
+    const isValidRequest = new JSONvalidator().validate(req.body,{
+      type:'object',
+      additionalProperties:false,
+      required:['email','password'],
+      properties:{
+        email:{ type:'string' },
+        password:{ type:'string' }
+      }
+    }).valid
+
+    if ( !isValidRequest ) {
+      return next(genError('REGISTER_DATA_NOT_VALID'));
+    }
+
+    const User = new UserModel();
+    const Token = new TokenModel();
+
+    const [ user ] = await User.select({
+      where:{ email:req.body.email }
+    });
+
+    if ( !user ) {
+      return next(genError('EMAIL_PASSWORD_INCORRECT'));
+    }
+
+    const { isMatched } = await new Password(req.body.password).comparePasswords(user.password);
+
+    if ( !isMatched ) {
+      return next(genError('EMAIL_PASSWORD_INCORRECT'));
+    }
+
+    if ( user.account_activated === 1 ) {
+      return next(genError('ACCOUNT_ALREADY_ACTIVATED'));
+    }
+
+    const token = uuidV4();
+
+    await Promise.all([
+      Token.insertOrUpdateToken({ userID:user.id_user,token }),
+      sendVerificationEmail({ to:user.email,token })
+    ]);
+
+    return res.json({ success:true });
+  } catch(e) {
+    Logger.log(e,'register');
+
+    return next(genError('REGISTER_EMAIL_RESEND_ERROR'));
   }
 });
 

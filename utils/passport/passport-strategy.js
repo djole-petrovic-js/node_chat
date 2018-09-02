@@ -3,16 +3,14 @@ const
   opts        = require('./passport-jwt-config'),
   UserModel   = require('../../models/userModel');
 
-const Strategy = new JwtStrategy(opts,async (jwt_payload,done) => {
-  const { id } = jwt_payload;
-
-  const User = new UserModel();
-
+const Strategy = new JwtStrategy(opts,async(jwt_payload,done) => {
   try {
+    const User = new UserModel();
+
     const [ user ] = await User.select({
       columns:['id_user','email','username'],
       limit:1,
-      where:{ id_user : id }
+      where:{ id_user:jwt_payload.id }
     });
 
     if ( !user ) {

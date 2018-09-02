@@ -15,6 +15,7 @@ const
   RateLimit     = require('express-rate-limiter'),
   socketioJwt   = require('socketio-jwt'),
   jwtConfig     = require('./utils/passport/passport-jwt-config'),
+  Logger        = require('./libs/Logger'),
   MemoryStore   = require('express-rate-limiter/lib/memoryStore'),
   app           = express();
 
@@ -30,7 +31,9 @@ const
 require('./cron/cron');
 require('./io-config/io-config')(io);
 
-app.enable('trust proxy');
+process.on('unhandledRejection', (reason, p) => {
+  Logger.log('Unhandled Rejection at: Promise', p, 'reason:', reason,'fatal');
+});
 
 const rateLimiter = new RateLimit({
   windowMs: 15*60*1000, // 15 minutes
@@ -39,6 +42,7 @@ const rateLimiter = new RateLimit({
   db : new MemoryStore()
 }).middleware();
 
+app.enable('trust proxy');
 app.use(helmet());
 app.use(logger('dev'));
 app.use(cors());

@@ -250,3 +250,146 @@
 
         *******************************************
       
+        *******************************************
+        Date : 2018-9-1 14:25:34
+        ReferenceError: Validator is not defined 
+
+        Stack trace : ReferenceError: Validator is not defined
+    at router.post (/home/djole/Desktop/data/Node_JS_Projects/node-chat/routes/register.js:225:28)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/route.js:131:13)
+    at Route.dispatch (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/route.js:112:3)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:277:22
+    at Function.process_params (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:330:12)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:271:10)
+    at Function.handle (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:176:3)
+    at router (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:46:12)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:312:13)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:280:7
+    at Function.process_params (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:330:12)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:271:10)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express-rate-limiter/index.js:110:20 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-9-1 14:26:01
+        ReferenceError: Validator is not defined 
+
+        Stack trace : ReferenceError: Validator is not defined
+    at router.post (/home/djole/Desktop/data/Node_JS_Projects/node-chat/routes/register.js:225:28)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/route.js:131:13)
+    at Route.dispatch (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/route.js:112:3)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:277:22
+    at Function.process_params (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:330:12)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:271:10)
+    at Function.handle (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:176:3)
+    at router (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:46:12)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:312:13)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:280:7
+    at Function.process_params (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:330:12)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:271:10)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express-rate-limiter/index.js:110:20 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-9-1 15:20:21
+        Error: Incorrect datetime value: 'now()' for column 'token_date' at row 1 
+
+        Stack trace : Error: Incorrect datetime value: 'now()' for column 'token_date' at row 1
+    at Packet.asError (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/packets/packet.js:667:13)
+    at Execute.Command.execute (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/commands/command.js:29:22)
+    at PoolConnection.Connection.handlePacket (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:417:28)
+    at PacketParser.onPacket (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:93:16)
+    at PacketParser.executeStart (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/packet_parser.js:73:14)
+    at Socket.<anonymous> (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:101:29)
+    at Socket.emit (events.js:159:13)
+    at addChunk (_stream_readable.js:265:12)
+    at readableAddChunk (_stream_readable.js:252:11)
+    at Socket.Readable.push (_stream_readable.js:209:10)
+    at TCP.onread (net.js:598:20) 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-9-1 15:23:17
+        Error: Incorrect datetime value: 'CURRENT_TIMESTAMP' for column 'token_date' at row 1 
+
+        Stack trace : Error: Incorrect datetime value: 'CURRENT_TIMESTAMP' for column 'token_date' at row 1
+    at Packet.asError (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/packets/packet.js:667:13)
+    at Execute.Command.execute (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/commands/command.js:29:22)
+    at PoolConnection.Connection.handlePacket (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:417:28)
+    at PacketParser.onPacket (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:93:16)
+    at PacketParser.executeStart (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/packet_parser.js:73:14)
+    at Socket.<anonymous> (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:101:29)
+    at Socket.emit (events.js:159:13)
+    at addChunk (_stream_readable.js:265:12)
+    at readableAddChunk (_stream_readable.js:252:11)
+    at Socket.Readable.push (_stream_readable.js:209:10)
+    at TCP.onread (net.js:598:20) 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-9-1 15:25:04
+        Error: Incorrect datetime value: '1535808304008' for column 'token_date' at row 1 
+
+        Stack trace : Error: Incorrect datetime value: '1535808304008' for column 'token_date' at row 1
+    at Packet.asError (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/packets/packet.js:667:13)
+    at Execute.Command.execute (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/commands/command.js:29:22)
+    at PoolConnection.Connection.handlePacket (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:417:28)
+    at PacketParser.onPacket (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:93:16)
+    at PacketParser.executeStart (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/packet_parser.js:73:14)
+    at Socket.<anonymous> (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:101:29)
+    at Socket.emit (events.js:159:13)
+    at addChunk (_stream_readable.js:265:12)
+    at readableAddChunk (_stream_readable.js:252:11)
+    at Socket.Readable.push (_stream_readable.js:209:10)
+    at TCP.onread (net.js:598:20) 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-9-1 15:25:37
+        Error: Incorrect datetime value: '2018-09-01T13:25:37.237Z' for column 'token_date' at row 1 
+
+        Stack trace : Error: Incorrect datetime value: '2018-09-01T13:25:37.237Z' for column 'token_date' at row 1
+    at Packet.asError (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/packets/packet.js:667:13)
+    at Execute.Command.execute (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/commands/command.js:29:22)
+    at PoolConnection.Connection.handlePacket (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:417:28)
+    at PacketParser.onPacket (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:93:16)
+    at PacketParser.executeStart (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/packet_parser.js:73:14)
+    at Socket.<anonymous> (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:101:29)
+    at Socket.emit (events.js:159:13)
+    at addChunk (_stream_readable.js:265:12)
+    at readableAddChunk (_stream_readable.js:252:11)
+    at Socket.Readable.push (_stream_readable.js:209:10)
+    at TCP.onread (net.js:598:20) 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-9-1 15:26:13
+        Error: Column 'token_date' cannot be null 
+
+        Stack trace : Error: Column 'token_date' cannot be null
+    at Packet.asError (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/packets/packet.js:667:13)
+    at Execute.Command.execute (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/commands/command.js:29:22)
+    at PoolConnection.Connection.handlePacket (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:417:28)
+    at PacketParser.onPacket (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:93:16)
+    at PacketParser.executeStart (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/packet_parser.js:73:14)
+    at Socket.<anonymous> (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:101:29)
+    at Socket.emit (events.js:159:13)
+    at addChunk (_stream_readable.js:265:12)
+    at readableAddChunk (_stream_readable.js:252:11)
+    at Socket.Readable.push (_stream_readable.js:209:10)
+    at TCP.onread (net.js:598:20) 
+
+        *******************************************
+      

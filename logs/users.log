@@ -10,3 +10,94 @@
 
         *******************************************
       
+        *******************************************
+        Date : 2018-8-31 10:41:39
+        Error: Password : Invalid password... 
+
+        Stack trace : Error: Password : Invalid password...
+    at new Password (/home/djole/Desktop/data/Node_JS_Projects/node-chat/libs/password.js:7:13)
+    at router.post (/home/djole/Desktop/data/Node_JS_Projects/node-chat/routes/users.js:157:28)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/route.js:131:13)
+    at complete (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/passport/lib/middleware/authenticate.js:250:13)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/passport/lib/middleware/authenticate.js:257:15
+    at pass (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/passport/lib/authenticator.js:421:14)
+    at Authenticator.transformAuthInfo (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/passport/lib/authenticator.js:443:5)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/passport/lib/middleware/authenticate.js:254:22
+    at IncomingMessage.req.login.req.logIn (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/passport/lib/http/request.js:63:13)
+    at JwtStrategy.strategy.success (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/passport/lib/middleware/authenticate.js:235:13)
+    at verified (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/passport-jwt/lib/strategy.js:102:33)
+    at JwtStrategy [as _verify] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/utils/passport/passport-strategy.js:22:12)
+    at <anonymous>
+    at process._tickCallback (internal/process/next_tick.js:188:7) 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-8-31 10:42:14
+        TypeError: User.select is not a function or its return value is not iterable 
+
+        Stack trace : TypeError: User.select is not a function or its return value is not iterable
+    at router.post (/home/djole/Desktop/data/Node_JS_Projects/node-chat/routes/users.js:158:29)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/route.js:131:13)
+    at complete (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/passport/lib/middleware/authenticate.js:250:13)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/passport/lib/middleware/authenticate.js:257:15
+    at pass (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/passport/lib/authenticator.js:421:14)
+    at Authenticator.transformAuthInfo (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/passport/lib/authenticator.js:443:5)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/passport/lib/middleware/authenticate.js:254:22
+    at IncomingMessage.req.login.req.logIn (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/passport/lib/http/request.js:63:13)
+    at JwtStrategy.strategy.success (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/passport/lib/middleware/authenticate.js:235:13)
+    at verified (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/passport-jwt/lib/strategy.js:102:33)
+    at JwtStrategy [as _verify] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/utils/passport/passport-strategy.js:22:12)
+    at <anonymous>
+    at process._tickCallback (internal/process/next_tick.js:188:7) 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-8-31 10:45:48
+        TypeError: Cannot read property 'uuid' of undefined 
+
+        Stack trace : TypeError: Cannot read property 'uuid' of undefined
+    at router.post (/home/djole/Desktop/data/Node_JS_Projects/node-chat/routes/users.js:175:46)
+    at <anonymous>
+    at process._tickCallback (internal/process/next_tick.js:188:7) 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-8-31 10:46:15
+        TypeError: Cannot read property 'uuid' of undefined 
+
+        Stack trace : TypeError: Cannot read property 'uuid' of undefined
+    at router.post (/home/djole/Desktop/data/Node_JS_Projects/node-chat/routes/users.js:176:46)
+    at <anonymous>
+    at process._tickCallback (internal/process/next_tick.js:188:7) 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-9-1 21:08:38
+        TypeError: Cannot read property 'id_user' of undefined 
+
+        Stack trace : TypeError: Cannot read property 'id_user' of undefined
+    at router.get (/home/djole/Desktop/data/Node_JS_Projects/node-chat/routes/users.js:28:34)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/route.js:131:13)
+    at Route.dispatch (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/route.js:112:3)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:277:22
+    at Function.process_params (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:330:12)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:271:10)
+    at Function.handle (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:176:3)
+    at router (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:46:12)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:312:13)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:280:7
+    at Function.process_params (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:330:12)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:271:10)
+    at initialize (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/passport/lib/middleware/initialize.js:53:5) 
+
+        *******************************************
+      

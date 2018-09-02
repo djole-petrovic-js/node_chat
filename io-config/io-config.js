@@ -3,6 +3,7 @@ module.exports = (io) => {
     UserModel     = require('../models/userModel'),
     FriendsModel  = require('../models/friendsModel'),
     MessagesModel = require('../models/messagesModel'),
+    Logger        = require('../libs/Logger'),
     User          = new UserModel(),
     Friend        = new FriendsModel(),
     users         = {};
@@ -10,33 +11,44 @@ module.exports = (io) => {
   io.users = users;
 
   io.updateFriends = async(friend1,friend2) => {
-    if ( users[friend1] ) {
-      users[friend1].friends = await Friend.getFriendsForUserWithID(friend1);
-    }
-
-    if ( users[friend2] ) {
-      users[friend2].friends = await Friend.getFriendsForUserWithID(friend2);
+    try {
+      if ( users[friend1] ) {
+        users[friend1].friends = await Friend.getFriendsForUserWithID(friend1);
+      }
+  
+      if ( users[friend2] ) {
+        users[friend2].friends = await Friend.getFriendsForUserWithID(friend2);
+      }
+    } catch(e) {
+      Logger.log(e,'socket_io');
     }
   }
 
+  // For a user with ID, find his friends, and notify them about
+  // allow offline messages status.
   io.updateAOMstatus = async(userID,value) => {
-    if ( users[userID] ) {
-      users[userID].user.allow_offline_messages = value;
-    }
-
-    const friends = await Friend.getFriendsForUserWithID(userID);
-
-    for ( friend of friends ) {
-      if ( users[friend.id_user] ) {
-        const userToChangeStatus = users[friend.id_user].friends.find(
-          x => x.id_user === userID
-        );
-
-        if ( userToChangeStatus ) {
-          userToChangeStatus.allow_offline_messages = value;
+    try {
+      if ( users[userID] ) {
+        users[userID].user.allow_offline_messages = value;
+      }
+  
+      const friends = await Friend.getFriendsForUserWithID(userID);
+  
+      for ( friend of friends ) {
+        if ( users[friend.id_user] ) {
+          const userToChangeStatus = users[friend.id_user].friends.find(
+            x => x.id_user === userID
+          );
+  
+          if ( userToChangeStatus ) {
+            userToChangeStatus.allow_offline_messages = value;
+          }
         }
       }
+    } catch(e) {
+      Logger.log(e,'socket_io');
     }
+    
   }
 
   io.on('connection', async(socket) => {
@@ -94,7 +106,9 @@ module.exports = (io) => {
                 message
               });
   
-            } catch(e) { } 
+            } catch(e) {
+              Logger.log(e);
+            } 
           }
         }
       } else {
@@ -103,25 +117,29 @@ module.exports = (io) => {
     });
 
     socket.on('disconnect', async() => {
-      const userID = socket.decoded_token.id;
+      try {
+        const userID = socket.decoded_token.id;
 
-      await User.update({
-        columns:['online'],
-        values:[0],
-        where:{
-          id_user:userID
+        for ( let { id_user } of users[userID].friends ) {
+          if ( users[id_user] ) {
+            io.to(users[id_user].socketID).emit('friend:logout',{
+              friendID:userID
+            });
+          }
         }
-      });
+  
+        delete users[userID];
 
-      for ( let { id_user } of users[userID].friends ) {
-        if ( users[id_user] ) {
-          io.to(users[id_user].socketID).emit('friend:logout',{
-            friendID:userID
-          });
-        }
+        await User.update({
+          columns:['online'],
+          values:[0],
+          where:{
+            id_user:userID
+          }
+        });
+      } catch(e) {
+        Logger.log(e,'socket_io');
       }
-
-      delete users[userID];
     });
   });
 }

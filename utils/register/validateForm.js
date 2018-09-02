@@ -4,10 +4,6 @@ const validateForm = function(formData) {
   return new Promise((resolve,reject) => {
     const form = new Form(formData);
 
-    /*
-     *  Definisana pravila za username
-    */
-   '';
     form
       .field('username')
       .validate('required','You have to enter username')

@@ -10,6 +10,8 @@ const
   Logger     = require('../libs/Logger'),
   router     = express.Router();
 
+const validateDeviceInfo = require('../utils/validateDeviceInfo');
+
 router.post('/',async (req,res,next) => {
   try {
     const isValid = new validator().validate(req.body,{
@@ -59,7 +61,7 @@ router.post('/',async (req,res,next) => {
       return res.json({
         error:true,
         errorMessage:'Email or password is incorect',
-        errorCode:'EMAIL_USERNAME_INCORRECT'
+        errorCode:'EMAIL_PASSWORD_INCORRECT'
       });
     }
 
@@ -69,7 +71,7 @@ router.post('/',async (req,res,next) => {
       return res.json({
         error:true,
         errorMessage:'Email or password is incorect',
-        errorCode:'EMAIL_USERNAME_INCORRECT'
+        errorCode:'EMAIL_PASSWORD_INCORRECT'
       });
     }
 
@@ -82,14 +84,7 @@ router.post('/',async (req,res,next) => {
     }
 
     if ( user.unique_device ) {
-      // check the device sending login request
-      const userDeviceInfo = JSON.parse(user.device_info);
-
-      if (!(
-        userDeviceInfo.uuid === deviceInfo.uuid &&
-        userDeviceInfo.serial === deviceInfo.serial &&
-        userDeviceInfo.manufacturer === deviceInfo.manufacturer
-      )) {
+      if ( !validateDeviceInfo(user.device_info,deviceInfo) ) {
         return next(genError('LOGIN_FATAL_ERROR'));
       }
     }

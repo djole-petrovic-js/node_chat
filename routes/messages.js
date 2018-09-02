@@ -6,9 +6,9 @@ const
   genError      = require('../utils/generateError'),
   router        = express.Router();
 
-router.get('/',passport.authenticate('jwt',{ session:false }),async(req,res,next) => {
-  const userID = req.user.id_user;
+router.use(passport.authenticate('jwt',{ session:false }));
 
+router.get('/',async(req,res,next) => {
   try {
     const Messages = new MessagesModel();
 
@@ -19,12 +19,11 @@ router.get('/',passport.authenticate('jwt',{ session:false }),async(req,res,next
         user:['u','m.id_sending','u.id_user']
       },
       where:{
-        id_receiving:userID
+        id_receiving:req.user.id_user
       }
     });
 
-    res.json(allMessages);
-
+    return res.json(allMessages);
   } catch(e) {
     Logger.log(e,'messages');
 
@@ -32,30 +31,23 @@ router.get('/',passport.authenticate('jwt',{ session:false }),async(req,res,next
   }
 });
 
-router.post('/delete_messages',passport.authenticate('jwt',{ session:false }),async(req,res,next) => {
+router.post('/delete_messages',async(req,res,next) => {
   try {
     if ( !req.body.userID ) {
       return next(genError('MESSAGES_DELETING_FAILED'));
     }
-
-    const 
-      deleteMessagesFromUserWithID = req.body.userID,
-      deleteMessagesForUserWithID  = req.user.id_user;
 
     const Messages = new MessagesModel();
 
     await Messages.deleteMultiple({
       confirm:true,
       where:{
-        id_sending:deleteMessagesFromUserWithID,
-        id_receiving:deleteMessagesForUserWithID
+        id_sending:req.body.userID,
+        id_receiving:req.user.id_user
       }
     });
 
-    res.json({
-      success:true
-    });
-
+    return res.json({ success:true });
   } catch(e) {
     Logger.log(e,'messages');
 

@@ -1,0 +1,12 @@
+
+        *******************************************
+        Date : 2018-9-1 15:50:54
+        ReferenceError: userDeviceInfo is not defined 
+
+        Stack trace : ReferenceError: userDeviceInfo is not defined
+    at router.post (/home/djole/Desktop/data/Node_JS_Projects/node-chat/routes/login.js:87:38)
+    at <anonymous>
+    at process._tickCallback (internal/process/next_tick.js:188:7) 
+
+        *******************************************
+      

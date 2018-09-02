@@ -10,7 +10,9 @@ module.exports = function(io) {
   const FriendsModel = require('../models/friendsModel');
   const NotificationsModel = require('../models/notificationsModel');
 
-  router.get('/',passport.authenticate('jwt',{ session:false }),async(req,res,next) => {
+  router.use(passport.authenticate('jwt',{ session:false }));
+
+  router.get('/',async(req,res,next) => {
     const Friends = new FriendsModel();
 
     try {
@@ -25,7 +27,7 @@ module.exports = function(io) {
   });
 
 
-  router.get('/pending_requests',passport.authenticate('jwt',{ session:false }),async(req,res,next) => {
+  router.get('/pending_requests',async(req,res,next) => {
     try {
       const Friends = new FriendsModel();
 
@@ -51,7 +53,7 @@ module.exports = function(io) {
 
 
 
-  router.post('/cancel_request',passport.authenticate('jwt',{ session:false }),async(req,res,next) => {
+  router.post('/cancel_request',async(req,res,next) => {
     try {
       if ( !(req.body.id_user && Types.isNumber(req.body.id_user)) ) {
         return next(genError('PENDING_FATAL_ERROR'));
@@ -79,7 +81,7 @@ module.exports = function(io) {
   });
 
 
-  router.post('/delete_friend',passport.authenticate('jwt',{ session:false }),async(req,res,next) => {
+  router.post('/delete_friend',async(req,res,next) => {
     try {
       const { id_user:IdUserRemoving } = req.user;
       const { IdFriendToRemove } = req.body;
@@ -144,17 +146,13 @@ module.exports = function(io) {
 
 
 
-  router.post('/add_friend',passport.authenticate('jwt',{ session:false }),async(req,res,next) => {
+  router.post('/add_friend',async(req,res,next) => {
     try {
       const { id_user:idFrom } = req.user;
       const { id:idTo } = req.body;
 
       if ( !idFrom || !idTo ) {
-        const error = new Error();
-        error.message = 'No friends specified';
-        error.errorCode = 'FRIENDS_MISSING_DATA';
-
-        return next(error); 
+        return next(genError('FRIENDS_MISSING_DATA')); 
       }
 
       const Friends = new FriendsModel();
@@ -227,7 +225,11 @@ module.exports = function(io) {
     }
   });
 
-  router.post('/confirm_friend',passport.authenticate('jwt',{ session:false }),async(req,res,next) => {
+  router.post('/confirm_friend',async(req,res,next) => {
+    if ( !req.body.id ) {
+      return next(genError('FRIENDS_CONFIRMING_FATAL_ERROR'));
+    }
+
     const { id_user:idUserConfirming } = req.user;
     const { id:idUserToAdd } = req.body;
 
@@ -278,25 +280,24 @@ module.exports = function(io) {
     try {
       const Notifications = new NotificationsModel();
 
-      await Friends.insertNewFriend({
-        id_friend_is:idUserConfirming,
-        id_friend_with:idUserToAdd,
-        confirmed:0
-      });
+      const [ notificationResult ] = await Promise.all([
+        Notifications.insertNewNotification({
+          id_notification_type:2,
+          notification_from:idUserConfirming,
+          notification_to:idUserToAdd
+        }),
+        Friends.insertNewFriend({
+          id_friend_is:idUserConfirming,
+          id_friend_with:idUserToAdd,
+          confirmed:0
+        })
+      ]);
 
-      const notificationResult = await Notifications.insertNewNotification({
-        id_notification_type:2,
-        notification_from:idUserConfirming,
-        notification_to:idUserToAdd
-      });
-
-      const updateFriendsResult = await Friends.confirmFriends({
+      await Friends.confirmFriends({
         userIDs:[idUserConfirming,idUserToAdd]
       });
 
-      res.json({
-        success:true
-      });
+      res.json({ success:true });
 
       io.updateFriends(idUserConfirming,idUserToAdd);
 

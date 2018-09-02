@@ -1,29 +1,27 @@
 const UserModel = require('../../models/userModel');
 
-const checkIfUsernameOrEmailExists = ({ username,email }) => {
-  return new Promise(async(resolve,reject) => {
-    const User = new UserModel();
+const checkIfUsernameOrEmailExists = async({ username,email }) => {
+  try {
+    const User = new UserModel()
 
-    try {
-      const [ resultUsername ] = await User.select({
+    const [ [resultUsername],[resultEmail] ] = await Promise.all([
+      User.select({
         limit:1,
         where:{ username }
-      });
-
-      const [ resultEmail ] = await User.select({
+      }),
+      User.select({
         limit:1,
         where:{ email }
-      });
+      })
+    ]);
 
-      resolve({
-        usernameAlreadyExists:!!resultUsername,
-        emailAlreadyExists:!!resultEmail
-      });
-      
-    } catch(e) {
-      reject(e);
-    }
-  });
+    return {
+      usernameAlreadyExists:!!resultUsername,
+      emailAlreadyExists:!!resultEmail
+    };
+  } catch(e) {
+    throw e;
+  }
 }
 
 module.exports = checkIfUsernameOrEmailExists;

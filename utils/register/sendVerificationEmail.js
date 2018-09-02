@@ -1,39 +1,34 @@
-const 
-  mailer = require('nodemailer'),
-  config = require('../../config/config');
+const mailer = require('nodemailer');
+const bluebird = require('bluebird');
 
-const sendVerificationEmail = function({ to , token }) {
-  if ( !to || !token ) {
-    throw new Error('Missing recipient or token');
-  }
+const sendVerificationEmail = async({ to , token }) => {
+  try {
+    if ( !to || !token ) {
+      throw new Error('Missing recipient or token');
+    }
 
-  return new Promise((resolve,reject) => {
     const mailOptions = {
       to,
-      from:'nohistorychat@gmail.com',
+      from:process.env.EMAIL,
       subject:'Activate your account',
       html:`
         <h1>Activate your account</h1>
         <h2>Welcome to NoHistoryChat!</h2>
         <p>Press link below to activate your account</p>
-        <a href="${ config.siteURL }/api/register/verify_token?token=${ token }"
+        <a href="${ process.env.SITE_URL }/api/register/verify_token?token=${ token }"
         >Click here</a>
         <p>If this email is unexpcted, please just ignore it.</p>
       `
     };
 
-    const transporter = mailer.createTransport(
+    const transporter = bluebird.promisifyAll(mailer.createTransport(
       `smtps://${ process.env.EMAIL }:${ process.env.EMAIL_PASSWORD }@smtp.gmail.com`
-    );
+    ));
 
-    transporter.sendMail(mailOptions,(err,info) => {
-      if ( err ) {
-        reject(err);
-      } else {
-        resolve(info);
-      }
-    });
-  });
+    return await transporter.sendMail(mailOptions);
+  } catch(e) {
+    throw e;
+  }
 }
 
 module.exports = sendVerificationEmail;

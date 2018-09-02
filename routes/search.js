@@ -1,7 +1,6 @@
 const 
-  express  = require('express'),
   passport = require('passport'),
-  router   = express.Router();
+  router   = require('express').Router();
 
 const UserModel = require('../models/userModel');
 const genError  = require('../utils/generateError');
@@ -11,9 +10,7 @@ router.post('/',passport.authenticate('jwt',{ session:false }),async(req,res,nex
   const [{ q },{ id_user }] = [ req.body,req.user ];
   
   if ( !(q && typeof q === 'string' && q !== '') ) {
-    return res.json({
-      result:[]
-    });
+    return res.json({ result:[] });
   }
 
   try {
@@ -35,8 +32,7 @@ router.post('/',passport.authenticate('jwt',{ session:false }),async(req,res,nex
       [`%${ q }%`,id_user,id_user]
     );
 
-    res.json({ result });
-
+    return res.json({ result });
   } catch(e) {
     Logger.log(e,'search');
 

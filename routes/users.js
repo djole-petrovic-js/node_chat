@@ -1,25 +1,31 @@
 module.exports = function(io) {
   const
-  router    = require('express').Router(),
-  passport  = require('passport'),
-  Form      = require('../libs/Form'),
-  Password  = require('../libs/password'),
-  Validator = require('jsonschema').Validator,
-  genError  = require('../utils/generateError'),
-  Logger    = require('../libs/Logger'),
-  UserModel = require('../models/userModel');
+    router    = require('express').Router(),
+    passport  = require('passport'),
+    mailer    = require('nodemailer'),
+    bluebird  = require('bluebird'),
+    Form      = require('../libs/Form'),
+    Password  = require('../libs/password'),
+    Validator = require('jsonschema').Validator,
+    genError  = require('../utils/generateError'),
+    Logger    = require('../libs/Logger'),
+    UserModel = require('../models/userModel');
 
-  router.get('/userinfo',passport.authenticate('jwt',{ session:false }),async(req,res,next) => {
+  const validateDeviceInfo = require('../utils/validateDeviceInfo');
+
+  router.use(passport.authenticate('jwt',{ session:false }));
+
+  router.get('/userinfo',async(req,res,next) => {
     try {
-      const id_user = req.user.id_user;
       const User = new UserModel();
 
       const [user] = await User.select({
         columns:[
-          'username','email','date_created','allow_offline_messages',
+          'username','email',
+          'date_created','allow_offline_messages',
           'unique_device'
         ],
-        where:{ id_user },
+        where:{ id_user:req.user.id_user },
         limit:1
       });
 
@@ -33,9 +39,9 @@ module.exports = function(io) {
 
 
 
-  router.post('/set_binary_settings',passport.authenticate('jwt',{ session:false }),async(req,res,next) => {
+  router.post('/set_binary_settings',async(req,res,next) => {
     try {
-      const isValid = new Validator().validate(req.body,{
+      const isValidRequest = new Validator().validate(req.body,{
         type:'object',
         additionalProperties:false,
         required:['setting','value'],
@@ -45,7 +51,7 @@ module.exports = function(io) {
         }
       }).valid;
 
-      if ( !(isValid && [0,1].includes(req.body.value)) ) {
+      if ( !(isValidRequest && [0,1].includes(req.body.value)) ) {
         return next(genError('USERS_FATAL_ERROR'));
       }
 
@@ -61,9 +67,7 @@ module.exports = function(io) {
         await io.updateAOMstatus(req.user.id_user,req.body.value);
       }
 
-      return res.json({
-        success:true
-      })
+      return res.json({ success:true });
     } catch(e) {
       Logger.log(e,'users');
 
@@ -73,7 +77,7 @@ module.exports = function(io) {
 
 
 
-  router.post('/changepassword',passport.authenticate('jwt',{ session:false }),async(req,res,next) => {
+  router.post('/changepassword',async(req,res,next) => {
     try {
       const isValid = new Validator().validate(req.body,{
         type:'object',
@@ -102,23 +106,15 @@ module.exports = function(io) {
       form.validate();
 
       if ( !form.isValid() ) {
-        const error = new Error();
-        error.errorCode = 'USERS_INVALID_DATA';
-
-        return next(error);
+        return next(genError('USERS_INVALID_DATA'));
       }
 
-      const id_user = req.user.id_user;
       const User = new UserModel();
-      const [user] = await User.select({ where:{ id_user } });
-      const password = new Password(req.body.currentPassword);
-      const { isMatched } = await password.comparePasswords(user.password);
+      const [ user ] = await User.select({ where:{ id_user:req.user.id_user } });
+      const { isMatched } = await new Password(req.body.currentPassword).comparePasswords(user.password);
 
       if ( !isMatched ) {
-        const error = new Error();
-        error.errorCode = 'USERS_PASSWORD_INVALID';
-
-        return next(error);
+        return next(genError('USERS_PASSWORD_INVALID'));
       }
 
       const hash = await new Password(req.body.newPassword).hashPassword();
@@ -126,17 +122,96 @@ module.exports = function(io) {
       await User.update({
         columns:['password'],
         values:[hash],
-        where:{ id_user }
+        where:{ id_user:req.user.id_user }
       });
 
-      return res.json({
-        success:true
-      });
+      const mailOptions = {
+        to:user.email,
+        from:process.env.EMAIL,
+        subject:'Password Change.',
+        html:`
+          <h1>NHC | Password has changed</h1>
+          <p>Your password has been changed.</p>
+          <p>If this wasn't you, please reply to this email.</p>
+          <p>If this email is not expected, please just ignore it.</p>
+        `
+      };
 
+      const transporter = bluebird.promisifyAll(mailer.createTransport(
+        `smtps://${ process.env.EMAIL }:${ process.env.EMAIL_PASSWORD }@smtp.gmail.com`
+      ));
+
+      try { await transporter.sendMail(mailOptions); } catch(e) { }
+
+      return res.json({ success:true });
     } catch(e) {
       Logger.log(e,'users');
     
       return next(genError('USERS_FATAL_ERROR'));
+    }
+  });
+
+
+
+
+  router.post('/delete_account',async(req,res,next) => {
+    try {
+      const isValidRequest = new Validator().validate(req.body,{
+        type:'object',
+        additionalProperties:false,
+        required:['password','deviceInfo'],
+        properties:{
+          password:{ type:'string' },
+          deviceInfo:{
+            type:'object',
+            additionalProperties:false,
+            requred:['uuid','serial','manufacturer'],
+            properties:{
+              uuid:{ type:['string',null] },
+              serial:{ type:['string',null] },
+              manufacturer:{ type:['string',null] }
+            }
+          }
+        }
+      }).valid;
+
+      if ( !isValidRequest ) {
+        return next(genError('USERS_DELETE_ACCOUNT_FATAL_ERROR'));
+      }
+
+      const User = new UserModel();
+
+      const [ user ] = await User.select({
+        where:{ id_user:req.user.id_user }
+      });
+
+      if ( !user ) {
+        return next(genError('USERS_DELETE_ACCOUNT_FATAL_ERROR'));
+      }
+
+      if ( user.unique_device && !validateDeviceInfo(user.device_info,req.body.deviceInfo) ) {
+        return next(genError('USERS_DELETE_ACCOUNT_FATAL_ERROR'))
+      }
+
+      const { isMatched } = await new Password(req.body.password).comparePasswords(user.password);
+
+      if ( !isMatched ) {
+        return res.json({
+          error:true,
+          errorCode:'USERS_DELETE_ACCOUNT_WRONG_PASSWORD'
+        });
+      }
+
+      await User.deleteMultiple({
+        confirm:true,
+        where:{ id_user:req.user.id_user }
+      });
+
+      return res.json({ success:true });
+    } catch(e) {
+      Logger.log(e,'users');
+    
+      return next(genError('USERS_DELETE_ACCOUNT_FATAL_ERROR'));
     }
   });
 
