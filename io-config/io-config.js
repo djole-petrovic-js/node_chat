@@ -120,6 +120,16 @@ module.exports = (io) => {
       try {
         const userID = socket.decoded_token.id;
 
+        await User.update({
+          columns:['online'],
+          values:[0],
+          where:{
+            id_user:userID
+          }
+        });
+
+        if ( !users[userID] ) return;
+
         for ( let { id_user } of users[userID].friends ) {
           if ( users[id_user] ) {
             io.to(users[id_user].socketID).emit('friend:logout',{
@@ -129,14 +139,6 @@ module.exports = (io) => {
         }
   
         delete users[userID];
-
-        await User.update({
-          columns:['online'],
-          values:[0],
-          where:{
-            id_user:userID
-          }
-        });
       } catch(e) {
         Logger.log(e,'socket_io');
       }
