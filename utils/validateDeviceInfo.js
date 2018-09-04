@@ -1,20 +1,12 @@
-const validateDeviceInfo = (userDeviceInfo,sentDeviceInfo) => {
-  if ( typeof userDeviceInfo === 'string' ) {
-    userDeviceInfo = JSON.parse(userDeviceInfo);
-  }
-
-  if ( typeof sentDeviceInfo === 'string' ) {
-    sentDeviceInfo = JSON.parse(sentDeviceInfo);
-  }
-
+const validateDeviceInfo = (user,sentDeviceInfo) => {
   const allowedFields = ['uuid','serial','manufacturer'];
 
   for ( const field of allowedFields ) {
-    if ( !(field in userDeviceInfo && field in sentDeviceInfo) ) {
+    if ( !('device_' + field in user && field in sentDeviceInfo) ) {
       return false;
     }
 
-    if ( userDeviceInfo[field] !== sentDeviceInfo[field] ) {
+    if ( user['device_' + field] !== sentDeviceInfo[field] ) {
       return false;
     }
   }

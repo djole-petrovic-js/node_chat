@@ -245,7 +245,6 @@ class Model {
 
         try {
           const stmt = bluebird.promisifyAll(await connection.prepareAsync(sql));
-
           const result = await stmt.executeAsync(values);
 
           connection.release();

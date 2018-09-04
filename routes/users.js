@@ -189,7 +189,7 @@ module.exports = function(io) {
         return next(genError('USERS_DELETE_ACCOUNT_FATAL_ERROR'));
       }
 
-      if ( user.unique_device && !validateDeviceInfo(user.device_info,req.body.deviceInfo) ) {
+      if ( user.unique_device && !validateDeviceInfo(user,req.body.deviceInfo) ) {
         return next(genError('USERS_DELETE_ACCOUNT_FATAL_ERROR'))
       }
 

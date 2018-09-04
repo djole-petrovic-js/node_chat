@@ -10,3 +10,142 @@
 
         *******************************************
       
+        *******************************************
+        Date : 2018-9-4 10:44:36
+        Error: Unknown column 'device_info' in 'field list' 
+
+        Stack trace : Error: Unknown column 'device_info' in 'field list'
+    at Packet.asError (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/packets/packet.js:667:13)
+    at Prepare.Command.execute (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/commands/command.js:29:22)
+    at PoolConnection.Connection.handlePacket (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:417:28)
+    at PacketParser.onPacket (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:93:16)
+    at PacketParser.executeStart (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/packet_parser.js:73:14)
+    at Socket.<anonymous> (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:101:29)
+    at Socket.emit (events.js:159:13)
+    at addChunk (_stream_readable.js:265:12)
+    at readableAddChunk (_stream_readable.js:252:11)
+    at Socket.Readable.push (_stream_readable.js:209:10)
+    at TCP.onread (net.js:598:20) 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-9-4 10:44:55
+        Error: Unknown column 'device_info' in 'field list' 
+
+        Stack trace : Error: Unknown column 'device_info' in 'field list'
+    at Packet.asError (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/packets/packet.js:667:13)
+    at Prepare.Command.execute (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/commands/command.js:29:22)
+    at PoolConnection.Connection.handlePacket (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:417:28)
+    at PacketParser.onPacket (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:93:16)
+    at PacketParser.executeStart (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/packet_parser.js:73:14)
+    at Socket.<anonymous> (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:101:29)
+    at Socket.emit (events.js:159:13)
+    at addChunk (_stream_readable.js:265:12)
+    at readableAddChunk (_stream_readable.js:252:11)
+    at Socket.Readable.push (_stream_readable.js:209:10)
+    at TCP.onread (net.js:598:20) 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-9-4 11:01:50
+        Error: Data too long for column 'refresh_token' at row 1 
+
+        Stack trace : Error: Data too long for column 'refresh_token' at row 1
+    at Packet.asError (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/packets/packet.js:667:13)
+    at Execute.Command.execute (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/commands/command.js:29:22)
+    at PoolConnection.Connection.handlePacket (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:417:28)
+    at PacketParser.onPacket (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:93:16)
+    at PacketParser.executeStart (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/packet_parser.js:73:14)
+    at Socket.<anonymous> (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/mysql2/lib/connection.js:101:29)
+    at Socket.emit (events.js:159:13)
+    at addChunk (_stream_readable.js:265:12)
+    at readableAddChunk (_stream_readable.js:252:11)
+    at Socket.Readable.push (_stream_readable.js:209:10)
+    at TCP.onread (net.js:598:20) 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-9-4 11:33:09
+        ReferenceError: Validator is not defined 
+
+        Stack trace : ReferenceError: Validator is not defined
+    at router.post (/home/djole/Desktop/data/Node_JS_Projects/node-chat/routes/login.js:141:28)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/route.js:131:13)
+    at Route.dispatch (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/route.js:112:3)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:277:22
+    at Function.process_params (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:330:12)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:271:10)
+    at Function.handle (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:176:3)
+    at router (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:46:12)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:312:13)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:280:7
+    at Function.process_params (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:330:12)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:271:10)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express-rate-limiter/index.js:110:20 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-9-4 11:33:33
+        ReferenceError: Validator is not defined 
+
+        Stack trace : ReferenceError: Validator is not defined
+    at router.post (/home/djole/Desktop/data/Node_JS_Projects/node-chat/routes/login.js:141:28)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/route.js:131:13)
+    at Route.dispatch (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/route.js:112:3)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:277:22
+    at Function.process_params (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:330:12)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:271:10)
+    at Function.handle (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:176:3)
+    at router (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:46:12)
+    at Layer.handle [as handle_request] (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:312:13)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:280:7
+    at Function.process_params (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:330:12)
+    at next (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/router/index.js:271:10)
+    at /home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express-rate-limiter/index.js:110:20 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-9-4 11:45:01
+        Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client 
+
+        Stack trace : Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+    at validateHeader (_http_outgoing.js:503:11)
+    at ServerResponse.setHeader (_http_outgoing.js:510:3)
+    at ServerResponse.header (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/response.js:718:10)
+    at ServerResponse.send (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/response.js:163:12)
+    at ServerResponse.json (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/response.js:249:15)
+    at ServerResponse.send (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/response.js:151:21)
+    at router.post (/home/djole/Desktop/data/Node_JS_Projects/node-chat/routes/login.js:197:16)
+    at <anonymous>
+    at process._tickCallback (internal/process/next_tick.js:188:7) 
+
+        *******************************************
+      
+        *******************************************
+        Date : 2018-9-4 11:47:30
+        Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client 
+
+        Stack trace : Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+    at validateHeader (_http_outgoing.js:503:11)
+    at ServerResponse.setHeader (_http_outgoing.js:510:3)
+    at ServerResponse.header (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/response.js:718:10)
+    at ServerResponse.send (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/response.js:163:12)
+    at ServerResponse.json (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/response.js:249:15)
+    at ServerResponse.send (/home/djole/Desktop/data/Node_JS_Projects/node-chat/node_modules/express/lib/response.js:151:21)
+    at router.post (/home/djole/Desktop/data/Node_JS_Projects/node-chat/routes/login.js:197:16)
+    at <anonymous>
+    at process._tickCallback (internal/process/next_tick.js:188:7) 
+
+        *******************************************
+      

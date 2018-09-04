@@ -176,10 +176,19 @@ router.post('/',async (req,res,next) => {
       return res.json(usernameAndEmailInfo);
     }
 
+    const userToInsert = {
+      username,
+      password:req.body.password,
+      email,
+      device_uuid:deviceInfo.uuid,
+      device_serial:deviceInfo.serial,
+      device_manufacturer:deviceInfo.manufacturer,
+    };
+
     const
       User   = new UserModel(),
       Token  = new TokenModel(),
-      result = await User.insertNewUser(Object.assign(form.cleanData,{ device_info:JSON.stringify(deviceInfo) })),
+      result = await User.insertNewUser(userToInsert),
       token  = uuidV4(),
       userID = result.insertId;
 
