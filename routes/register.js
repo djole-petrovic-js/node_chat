@@ -118,7 +118,8 @@ router.post('/checkemailusername',async (req,res,next) => {
 router.post('/',async (req,res,next) => {
   try {
     const { username,email } = req.body;
-  
+    
+    // In production, remove null values from device info.
     const isValidRequest = new JSONvalidator().validate(req.body,{
       type:'object',
       properties:{
@@ -148,7 +149,7 @@ router.post('/',async (req,res,next) => {
       });
     }
 
-    // exlude device info from validation
+    // exlude device info from validation (???)
     const deviceInfo = req.body.deviceInfo;
 
     delete req.body.deviceInfo;

@@ -63,7 +63,7 @@ io.use(socketioJwt.authorize({
 
 // API Routes
 app.use('/api/register',rateLimiter,register);
-app.use('/api/login',login);
+app.use('/api/login',rateLimiter,login);
 app.use('/api/search',search);
 app.use('/api/notifications',notifications);
 app.use('/api/friends',friends);
@@ -77,7 +77,7 @@ app.use((req, res, next) => {
   next(err);
 });
 
-app.use(function(err, req, res, next) {
+app.use((err, req, res, next) => {
   res.status(err.status || 500);
 
   if ( err.errorCode ) {

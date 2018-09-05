@@ -10,42 +10,101 @@ const
   Logger     = require('../libs/Logger'),
   randtoken  = require('rand-token'),
   moment     = require('moment'),
+  Auth       = require('../libs/Auth'),
   router     = express.Router();
 
 const validateDeviceInfo = require('../utils/validateDeviceInfo');
 
-router.post('/',async (req,res,next) => {
-  try {
-    const isValid = new Validator().validate(req.body,{
+const emailPasswordSchema = {
+  type:'object',
+  properties:{
+    email:{ type:'string' },
+    password:{ type:'string' },
+    deviceInfo:{
       type:'object',
       properties:{
-        email:{ type:'string' },
-        password:{ type:'string' },
-        deviceInfo:{
-          type:'object',
-          properties:{
-            uuid:{ type:['string',null] },
-            serial:{ type:['string',null] },
-            manufacturer:{ type:['string',null] }
-          },
-          required:['uuid','serial','manufacturer'],
-          additionalProperties:false
-        }
+        uuid:{ type:['string',null] },
+        serial:{ type:['string',null] },
+        manufacturer:{ type:['string',null] }
       },
-      additionalProperties:false,
-      required:['email','password','deviceInfo']
-    }).valid;
-  
-    if ( !isValid ) {
+      required:['uuid','serial','manufacturer'],
+      additionalProperties:false
+    }
+  },
+  additionalProperties:false,
+  required:['email','password','deviceInfo']
+};
+
+const pinSchema = {
+  type:'object',
+  additionalProperties:false,
+  required:['deviceInfo','pin'],
+  properties:{
+    pin:{ type:'string' },
+    deviceInfo:{
+      type:'object',
+      properties:{
+        uuid:{ type:['string',null] },
+        serial:{ type:['string',null] },
+        manufacturer:{ type:['string',null] }
+      },
+      required:['uuid','serial','manufacturer'],
+      additionalProperties:false
+    }
+  }
+};
+
+router.post('/',async (req,res,next) => {
+  try {
+    const validEmailPasswordRequest = new Validator().validate(
+      req.body,emailPasswordSchema
+    ).valid;
+
+    const validPinRequest = new Validator().validate(
+      req.body,pinSchema
+    ).valid;
+
+    if ( !validEmailPasswordRequest && !validPinRequest ) {
       return res.json({
         error:true,
         errorMessage:'Missing credentials',
         errorCode:'MISSING_CREDENTIALS'
       });
     }
+
+    const User = new UserModel();
+
+    if ( validPinRequest ) {
+      const data = await Auth.loginWithPin(req.body);
+
+      if ( !data.success ) {
+        if ( data.logError ) {
+          Logger.log(data.logError,'login');
+        }
+
+        return next(data.error);
+      }
+      
+      const refreshToken = randtoken.uid(256);
+
+      await User.update({
+        columns:['refresh_token','refresh_token_date'],
+        values:[refreshToken,moment().toISOString()],
+        where:{ id_user:data.user.id_user }
+      });
+
+      return res.json({
+        success:true,
+        refreshToken,
+        token:jwt.sign(
+          { id:data.user.id_user,username:data.user.username },
+          jwtOptions.secretOrKey ,
+          { expiresIn: '25m' }
+        )
+      });
+    }
   
     const { email,password,deviceInfo } = req.body;
-    const User = new UserModel();
     const UserPassword = new Password(password);
 
     const [ user ] = await User.select({
@@ -93,11 +152,10 @@ router.post('/',async (req,res,next) => {
     }
 
     const refreshToken = randtoken.uid(256);
-    const isoStr = moment().toISOString();
 
     await User.update({
       columns:['refresh_token','refresh_token_date'],
-      values:[refreshToken,isoStr],
+      values:[refreshToken,moment().toISOString()],
       where:{ email }
     });
 
@@ -110,7 +168,6 @@ router.post('/',async (req,res,next) => {
         { expiresIn: '25m' }
       )
     });
-
   } catch(e) {
     Logger.log(e,'login');
 
@@ -158,6 +215,7 @@ router.post('/grant_access_token',async(req,res,next) => {
     });
 
     if ( !isValidRequest.valid ) {
+      console.log('valid request failed');
       return next(genError('LOGIN_FATAL_ERROR'));
     }
 
@@ -169,6 +227,8 @@ router.post('/grant_access_token',async(req,res,next) => {
 
     // check if token exists
     if ( !user ) {
+      console.log('token doesnt exist');
+
       return next(genError('LOGIN_FATAL_ERROR'));
     }
 
@@ -176,11 +236,15 @@ router.post('/grant_access_token',async(req,res,next) => {
 
     // refresh token lasts for 24 hours
     if ( moment().diff(refreshTokenDate,'hours') >= 24 ) {
+      console.log('istekao');
+      console.log(moment().diff(refreshTokenDate,'hours') >= 24)
+
       return next(genError('LOGIN_FATAL_ERROR'));
     }
     
     // check the user device
     if ( user.unique_device && !validateDeviceInfo(user,req.body.deviceInfo) ) {
+      console.log('user device validation failed');
       return next(genError('LOGIN_FATAL_ERROR'));
     }
 
@@ -199,6 +263,31 @@ router.post('/grant_access_token',async(req,res,next) => {
     return next(genError('LOGIN_FATAL_ERROR'));
   }
 })
+
+
+
+
+router.post('/logout',passport.authenticate('jwt',{ session:false }),async(req,res,next) => {
+  try {
+    const User = new UserModel();
+
+    await User.update({
+      columns:['refresh_token','refresh_token_date'],
+      values:[null,null],
+      where:{ id_user:req.user.id_user }
+    });
+
+    return res.json({ success:true });
+  } catch(e) {
+    console.log(e);
+    Logger.log(e,'login');
+
+    return next(genError('LOGIN_FATAL_ERROR'));
+  }
+});
+
+
+
 
 router.get('/check_login',passport.authenticate('jwt',{ session:false }),async(req,res) => {
   res.json({

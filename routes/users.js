@@ -23,7 +23,7 @@ module.exports = function(io) {
         columns:[
           'username','email',
           'date_created','allow_offline_messages',
-          'unique_device'
+          'unique_device','pin_login_enabled'
         ],
         where:{ id_user:req.user.id_user },
         limit:1
@@ -57,20 +57,88 @@ module.exports = function(io) {
 
       const User = new UserModel();
 
+      if ( req.body.setting === 'unique_device' ) {
+        if ( req.body.value === 0 ) {
+          await User.update({
+            columns:['pin_login_enabled'],
+            values:[0],
+            where:{ id_user:req.user.id_user }
+          });
+        }
+      }
+
+      if ( req.body.setting === 'pin_login_enabled' ) {
+        const [ user ] = await User.select({ where:{ id_user:req.user.id_user } });
+
+        if ( !user.unique_device ) {
+          return next(genError('PIN_UNIQUE_DEVICE_OFF'));
+        }
+
+        if ( !user.pin ) {
+          return next(genError('PIN_SETTING_FIRST_TIME'));
+        }
+      }
+
+      if ( req.body.setting === 'allow_offline_messages' ) {
+        await io.updateAOMstatus(req.user.id_user,req.body.value);
+      }
+
       await User.update({
         columns:[req.body.setting],
         values:[req.body.value],
         where:{ id_user:req.user.id_user }
       });
 
-      if ( req.body.setting === 'allow_offline_messages' ) {
-        await io.updateAOMstatus(req.user.id_user,req.body.value);
-      }
-
       return res.json({ success:true });
     } catch(e) {
       Logger.log(e,'users');
 
+      return next(genError('USERS_FATAL_ERROR'));
+    }
+  });
+
+
+  // if pin is null, use this setting it for the first time
+  // if exists, ask for his old pin
+  router.post('/change_pin',async(req,res,next) => {
+    try {
+      const { pin,oldPin } = req.body;
+
+      if ( !pin ) {
+        return next(genError('USERS_FATAL_ERROR')); 
+      }
+
+      const User = new UserModel();
+
+      const [ user ] = await User.select({
+        where:{ id_user:req.user.id_user }
+      });
+
+      const form = new Form({ pin:'bail|required|regex:^[1-9][0-9]{3}$' });
+
+      form.bindValues({ pin });
+      form.validate();
+
+      if ( !form.isValid() ) {
+        return next(genError('USERS_FATAL_ERROR'));
+      }
+
+      // if pin is null, it is being set for the first time
+      if ( !user.pin ) {
+        const hashedPin = await new Password(pin).hashPassword();
+
+        await User.update({
+          columns:['pin'],
+          values:[hashedPin],
+          where:{ id_user:req.user.id_user }
+        });
+
+        return res.json({ success:true });
+      }
+
+      return res.json({ success:true });
+    } catch(e) {
+      console.log(e);
       return next(genError('USERS_FATAL_ERROR'));
     }
   });
@@ -214,6 +282,13 @@ module.exports = function(io) {
       return next(genError('USERS_DELETE_ACCOUNT_FATAL_ERROR'));
     }
   });
+
+
+
+
+
+
+
 
   return router;
 };
