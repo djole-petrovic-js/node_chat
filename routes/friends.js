@@ -20,7 +20,7 @@ module.exports = function(io) {
 
       return res.json(friends);
     } catch(e) {
-      Logger.log(e,'friends');
+      Logger.log(e,'friends:root');
 
       return next(genError('FRIENDS_FATAL_ERROR')); 
     }
@@ -45,7 +45,7 @@ module.exports = function(io) {
 
       return res.json(pendingRequests);
     } catch(e) {
-      Logger.log(e,'friends');
+      Logger.log(e,'friends:pending_requests');
 
       return next(genError('FRIENDS_FATAL_ERROR'));
     }
@@ -70,11 +70,9 @@ module.exports = function(io) {
         }
       });
 
-      return res.json({
-        success:true
-      });
+      return res.json({ success:true });
     } catch(e) {
-      Logger.log(e,'friends');
+      Logger.log(e,'friends:cancel_request');
 
       return next(genError('PENDING_FATAL_ERROR'));
     }
@@ -133,12 +131,9 @@ module.exports = function(io) {
         io.to(io.users[IdFriendToRemove].socketID).emit('friend:friend-you-removed',{ IdUserRemoving });
       }
 
-      return res.json({
-        success:true
-      });
-
+      return res.json({ success:true });
     } catch(e) {
-      Logger.log(e,'friends');
+      Logger.log(e,'friends:delete_friend');
 
       return next(genError('FRIENDS_FATAL_ERROR'));
     }
@@ -151,7 +146,7 @@ module.exports = function(io) {
       const { id_user:idFrom } = req.user;
       const { id:idTo } = req.body;
 
-      if ( !idFrom || !idTo ) {
+      if ( !(idFrom && idTo && Types.isInteger(idFrom) && Types.isInteger(idTo)) ) {
         return next(genError('FRIENDS_MISSING_DATA')); 
       }
 
@@ -219,7 +214,7 @@ module.exports = function(io) {
         io.to(io.users[idTo].socketID).emit('notification:new-notification',newNotification);
       }
     } catch(e) {
-      Logger.log(e,'friends');
+      Logger.log(e,'friends:add_friend');
 
       return next(genError('FRIENDS_FATAL_ERROR'));
     }
@@ -253,7 +248,7 @@ module.exports = function(io) {
       }
 
     } catch(e) {
-      Logger.log(e,'friends');
+      Logger.log(e,'friends:confirm_friend');
 
       return next(genError('FRIENDS_CONFIRMING_FATAL_ERROR'));
     }
@@ -354,7 +349,7 @@ module.exports = function(io) {
         );
       }
     } catch(e) {
-      Logger.log(e,'friends');
+      Logger.log(e,'friends:confirm_friend');
 
       return next(genError('FRIENDS_CONFIRMING_FATAL_ERROR'));
     }

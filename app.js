@@ -32,8 +32,8 @@ const
 require('./cron/cron');
 require('./io-config/io-config')(io);
 
-process.on('unhandledRejection', (reason, p) => {
-  Logger.log('Unhandled Rejection at: Promise', p, 'reason:', reason,'fatal');
+process.on('unhandledRejection',(reason) => {
+  Logger.log(reason,'unhandled_error');
 });
 
 const rateLimiter = new RateLimit({
@@ -63,7 +63,7 @@ io.use(socketioJwt.authorize({
 
 // API Routes
 app.use('/api/register',rateLimiter,register);
-app.use('/api/login',rateLimiter,login);
+app.use('/api/login',login);
 app.use('/api/search',search);
 app.use('/api/notifications',notifications);
 app.use('/api/friends',friends);

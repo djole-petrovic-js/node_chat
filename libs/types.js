@@ -3,6 +3,10 @@ class Types {
       return Types.getType(object) === Types.allTypes.number;
   }
 
+  static isInteger(object) {
+    return Number.isInteger(object);
+  }
+
   static isString(object) {
     return Types.getType(object) === Types.allTypes.string;
   }

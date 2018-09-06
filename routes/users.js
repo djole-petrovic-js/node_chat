@@ -19,15 +19,19 @@ module.exports = function(io) {
     try {
       const User = new UserModel();
 
-      const [user] = await User.select({
+      const [ user ] = await User.select({
         columns:[
           'username','email',
           'date_created','allow_offline_messages',
-          'unique_device','pin_login_enabled'
+          'unique_device','pin_login_enabled',
+          'pin'
         ],
         where:{ id_user:req.user.id_user },
         limit:1
       });
+
+      // notifify that user has set his pin, so he can change it
+      user.pin = !!user.pin;
 
       return res.json(user);
     } catch(e) {
@@ -98,11 +102,11 @@ module.exports = function(io) {
   });
 
 
-  // if pin is null, use this setting it for the first time
+  // if user pin is null, use this setting it for the first time
   // if exists, ask for his old pin
   router.post('/change_pin',async(req,res,next) => {
     try {
-      const { pin,oldPin } = req.body;
+      const { pin } = req.body;
 
       if ( !pin ) {
         return next(genError('USERS_FATAL_ERROR')); 
@@ -110,7 +114,7 @@ module.exports = function(io) {
 
       const User = new UserModel();
 
-      const [ user ] = await User.select({
+      let [ user ] = await User.select({
         where:{ id_user:req.user.id_user }
       });
 
@@ -136,9 +140,52 @@ module.exports = function(io) {
         return res.json({ success:true });
       }
 
+      // pin is already set, now we need to change it.
+      // pin is already verified, so compare it to confirm PIN
+      // and verify old pin
+      const { pin:newPIN,pinConfirmed,oldPin } = req.body;
+
+      if ( newPIN !== pinConfirmed ) {
+        return next(genError('USERS_FATAL_ERROR'));
+      }
+
+      const { isMatched } = await new Password(oldPin).comparePasswords(user.pin);
+
+      if ( !isMatched ) {
+        return res.json({
+          error:true,
+          errorCode:'USERS_PIN_INVALID'
+        })
+      }
+
+      const hashedPin =  await new Password(newPIN).hashPassword();
+
+      await User.update({
+        columns:['pin'],
+        values:[hashedPin],
+        where:{ id_user:req.user.id_user }
+      });
+
+      const mailOptions = {
+        to:user.email,
+        from:process.env.EMAIL,
+        subject:'PIN Change.',
+        html:`
+          <h1>No History Chat | PIN has changed</h1>
+          <p>Your PIN has been changed.</p>
+          <p>If this wasn't you, please reply to this email.</p>
+          <p>If this email is not expected, please just ignore it.</p>
+        `
+      };
+
+      const transporter = bluebird.promisifyAll(mailer.createTransport(
+        `smtps://${ process.env.EMAIL }:${ process.env.EMAIL_PASSWORD }@smtp.gmail.com`
+      ));
+
+      try { await transporter.sendMail(mailOptions); } catch(e) { }
+
       return res.json({ success:true });
     } catch(e) {
-      console.log(e);
       return next(genError('USERS_FATAL_ERROR'));
     }
   });
@@ -198,7 +245,7 @@ module.exports = function(io) {
         from:process.env.EMAIL,
         subject:'Password Change.',
         html:`
-          <h1>NHC | Password has changed</h1>
+          <h1>No History Chat | Password has changed</h1>
           <p>Your password has been changed.</p>
           <p>If this wasn't you, please reply to this email.</p>
           <p>If this email is not expected, please just ignore it.</p>
@@ -282,13 +329,6 @@ module.exports = function(io) {
       return next(genError('USERS_DELETE_ACCOUNT_FATAL_ERROR'));
     }
   });
-
-
-
-
-
-
-
 
   return router;
 };

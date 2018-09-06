@@ -72,104 +72,46 @@ router.post('/',async (req,res,next) => {
       });
     }
 
-    const User = new UserModel();
+    // data from Auth output, contains user, error and wheather to log error or not
+    const data = await (validPinRequest
+      ? Auth.loginWithPin(req.body) 
+      : Auth.loginWithEmailPassword(req.body)
+    );
 
-    if ( validPinRequest ) {
-      const data = await Auth.loginWithPin(req.body);
-
-      if ( !data.success ) {
-        if ( data.logError ) {
-          Logger.log(data.logError,'login');
-        }
-
-        return next(data.error);
+    if ( !data.success ) {
+      if ( data.logError ) {
+        Logger.log(data.logError,'login');
       }
-      
-      const refreshToken = randtoken.uid(256);
 
-      await User.update({
-        columns:['refresh_token','refresh_token_date'],
-        values:[refreshToken,moment().toISOString()],
-        where:{ id_user:data.user.id_user }
-      });
-
-      return res.json({
-        success:true,
-        refreshToken,
-        token:jwt.sign(
-          { id:data.user.id_user,username:data.user.username },
-          jwtOptions.secretOrKey ,
-          { expiresIn: '25m' }
-        )
-      });
-    }
-  
-    const { email,password,deviceInfo } = req.body;
-    const UserPassword = new Password(password);
-
-    const [ user ] = await User.select({
-      columns:[
-        'id_user','email',
-        'username','password',
-        'account_activated',
-        'unique_device','device_uuid',
-        'device_serial','device_manufacturer'
-      ],
-      limit:1,
-      where:{ email }
-    });
-
-    if ( !user ) {
-      return res.json({
-        error:true,
-        errorMessage:'Email or password is incorect',
-        errorCode:'EMAIL_PASSWORD_INCORRECT'
-      });
-    }
-
-    const { isMatched } = await UserPassword.comparePasswords(user.password);
-
-    if ( !isMatched ) {
-      return res.json({
-        error:true,
-        errorMessage:'Email or password is incorect',
-        errorCode:'EMAIL_PASSWORD_INCORRECT'
-      });
-    }
-
-    if ( user.account_activated !== 1 ) {
-      return res.json({
-        error:true,
-        errorMessage:'Your account is not activated',
-        errorCode:'ACCOUNT_NOT_ACTIVATED'
-      });
-    }
-
-    if ( user.unique_device ) {
-      if ( !validateDeviceInfo(user,deviceInfo) ) {
-        return next(genError('LOGIN_FATAL_ERROR'));
-      }
+      return next(data.error);
     }
 
     const refreshToken = randtoken.uid(256);
 
-    await User.update({
-      columns:['refresh_token','refresh_token_date'],
-      values:[refreshToken,moment().toISOString()],
-      where:{ email }
+    await new UserModel().update({
+      columns:[
+        'refresh_token','refresh_token_date',
+        'refresh_device_info_json'
+      ],
+      values:[
+        refreshToken,
+        moment().toISOString(),
+        JSON.stringify(req.body.deviceInfo)
+      ],
+      where:{ id_user:data.user.id_user }
     });
 
     return res.json({
       success:true,
       refreshToken,
       token:jwt.sign(
-        { id:user.id_user , username:user.username },
+        { id:data.user.id_user,username:data.user.username },
         jwtOptions.secretOrKey ,
         { expiresIn: '25m' }
       )
     });
   } catch(e) {
-    Logger.log(e,'login');
+    Logger.log(e,'login:root');
 
     return next(genError('LOGIN_FATAL_ERROR'));
   }
@@ -186,7 +128,7 @@ router.post('/refresh_token',passport.authenticate('jwt',{ session:false }),asyn
       )
     });
   } catch(e) {
-    Logger.log(e,'login');
+    Logger.log(e,'login:refresh_token');
 
     return next(genError('LOGIN_FATAL_ERROR'));
   }
@@ -215,7 +157,6 @@ router.post('/grant_access_token',async(req,res,next) => {
     });
 
     if ( !isValidRequest.valid ) {
-      console.log('valid request failed');
       return next(genError('LOGIN_FATAL_ERROR'));
     }
 
@@ -227,8 +168,6 @@ router.post('/grant_access_token',async(req,res,next) => {
 
     // check if token exists
     if ( !user ) {
-      console.log('token doesnt exist');
-
       return next(genError('LOGIN_FATAL_ERROR'));
     }
 
@@ -236,19 +175,20 @@ router.post('/grant_access_token',async(req,res,next) => {
 
     // refresh token lasts for 24 hours
     if ( moment().diff(refreshTokenDate,'hours') >= 24 ) {
-      console.log('istekao');
-      console.log(moment().diff(refreshTokenDate,'hours') >= 24)
-
       return next(genError('LOGIN_FATAL_ERROR'));
     }
     
-    // check the user device
-    if ( user.unique_device && !validateDeviceInfo(user,req.body.deviceInfo) ) {
-      console.log('user device validation failed');
+    // if user has unique device enabled
+    // check if request comes from that device
+    // else check the device user has logged in from last time
+    const userDeviceInfo = user.unique_device
+      ? user
+      : JSON.parse(user.refresh_device_info_json);
+
+    if ( !validateDeviceInfo(userDeviceInfo,req.body.deviceInfo) ) {
       return next(genError('LOGIN_FATAL_ERROR'));
     }
 
-    // if everything is fine, send a new access token
     return res.json({
       success:true,
       token:jwt.sign(
@@ -258,7 +198,7 @@ router.post('/grant_access_token',async(req,res,next) => {
       )
     });
   } catch(e) {
-    Logger.log(e,'login');
+    Logger.log(e,'login:grant_access_token');
 
     return next(genError('LOGIN_FATAL_ERROR'));
   }
@@ -272,15 +212,14 @@ router.post('/logout',passport.authenticate('jwt',{ session:false }),async(req,r
     const User = new UserModel();
 
     await User.update({
-      columns:['refresh_token','refresh_token_date'],
-      values:[null,null],
+      columns:['refresh_token','refresh_token_date','refresh_device_info_json'],
+      values:[null,null,null],
       where:{ id_user:req.user.id_user }
     });
 
     return res.json({ success:true });
   } catch(e) {
-    console.log(e);
-    Logger.log(e,'login');
+    Logger.log(e,'login:logout');
 
     return next(genError('LOGIN_FATAL_ERROR'));
   }
