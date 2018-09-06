@@ -25,7 +25,7 @@ router.get('/',async(req,res,next) => {
 
     return res.json(allMessages);
   } catch(e) {
-    Logger.log(e,'messages');
+    Logger.log(e,'messages:root');
 
     return next(genError('MESSAGES_FETCH_FAILED'));
   }
@@ -49,7 +49,7 @@ router.post('/delete_messages',async(req,res,next) => {
 
     return res.json({ success:true });
   } catch(e) {
-    Logger.log(e,'messages');
+    Logger.log(e,'messages:delete_messages');
 
     return next(genError('MESSAGES_DELETING_FAILED'));
   }

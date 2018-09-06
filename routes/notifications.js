@@ -16,7 +16,7 @@ module.exports = function(io) {
 
       res.json(notifications);
     } catch(e) {
-      Logger.log(e,'notifications');
+      Logger.log(e,'notifications:root');
 
       return next(genError('NOTIFICATION_FATAL_ERROR'));
     }
@@ -42,7 +42,7 @@ module.exports = function(io) {
 
       return res.json({ success:true });
     } catch(e) {
-      Logger.log(e,'notifications');
+      Logger.log(e,'notifications:dismiss');
 
       return next(genError('NOTIFICATION_FATAL_ERROR'));
     }
@@ -59,7 +59,7 @@ module.exports = function(io) {
 
       return res.json({ success:true });
     } catch(e) {
-      Logger.log(e,'notifications');
+      Logger.log(e,'notifications:dismiss_all');
 
       return next(genError('NOTIFICATION_FATAL_ERROR'));
     }

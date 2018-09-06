@@ -17,24 +17,24 @@ class Auth {
         ],
         where:{ email:body.email }
       });
-
+      genError('EMAIL_PASSWORD_INCORRECT')
       if ( !user ) {
-        return { success:false,errorCode:'EMAIL_PASSWORD_INCORRECT' }
+        return { success:false,error:genError('EMAIL_PASSWORD_INCORRECT') }
       }
 
       const { isMatched } = await new Password(body.password).comparePasswords(user.password);
 
       if ( !isMatched ) {
-        return { success:false, errorCode:'EMAIL_PASSWORD_INCORRECT' }
+        return { success:false,error:genError('EMAIL_PASSWORD_INCORRECT') }
       }
   
       if ( user.account_activated !== 1 ) {
-        return { success:false, errorCode:'ACCOUNT_NOT_ACTIVATED' }
+        return { success:false, error:genError('ACCOUNT_NOT_ACTIVATED') }
       }
 
       if ( user.unique_device ) {
         if ( !validateDeviceInfo(user,body.deviceInfo) ) {
-          return next(genError('LOGIN_FATAL_ERROR'));
+          return { success:false, error:genError('LOGIN_FATAL_ERROR') }
         }
       }
 

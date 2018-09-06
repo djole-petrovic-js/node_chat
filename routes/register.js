@@ -77,7 +77,7 @@ router.get('/verify_token',async(req,res) => {
     res.send('Your account is activated, you can now log in...');
 
   } catch(e) {
-    Logger.log(e,'register');
+    Logger.log(e,'register:verify_token');
 
     return res.send('Error while verifing your token, please try again!');
   }
@@ -198,14 +198,14 @@ router.post('/',async (req,res,next) => {
     try {
       await sendVerificationEmail({ to:email,token });
     } catch(e) {
-      Logger.log(e,'register');
+      Logger.log(e,'register:root');
 
       return next(genError('REGISTER_EMAIL_SEND_ERROR'));
     }
 
     return res.json({ success:true });
   } catch(e) {
-    Logger.log(e,'register');
+    Logger.log(e,'register:root');
 
     return next(genError('REGISTER_FATAL_ERROR'));
   }
@@ -259,7 +259,7 @@ router.post('/resend_confirmation_email',async(req,res,next) => {
 
     return res.json({ success:true });
   } catch(e) {
-    Logger.log(e,'register');
+    Logger.log(e,'register:resend_confirmation_email');
 
     return next(genError('REGISTER_EMAIL_RESEND_ERROR'));
   }

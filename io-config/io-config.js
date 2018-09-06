@@ -80,39 +80,41 @@ module.exports = (io) => {
     });
 
     socket.on('new:message',async({ userID,message }) => {
-      const { id:senderID, username:senderUsername } = socket.decoded_token;
+      try {
+        const { id:senderID, username:senderUsername } = socket.decoded_token;
 
-      const friend = users[senderID].friends.find(
-        ({ id_user }) => id_user === userID
-      );
+        if ( !users[senderID] ) return;
 
-      if ( friend ) {
-        if ( users[userID] ) {
-          io.to(users[userID].socketID).emit('message:new-message',{
-            senderID,
-            senderUsername,
-            message
-          });
-        } else {
-          io.to(users[senderID].socketID).emit('message:user-not-online');
+        const friend = users[senderID].friends.find(
+          ({ id_user }) => id_user === userID
+        );
 
-          if ( friend.allow_offline_messages ) {
-            try {
-              const Messages = new MessagesModel();
+        if ( friend ) {
+          if ( users[userID] ) {
+            io.to(users[userID].socketID).emit('message:new-message',{
+              senderID,
+              senderUsername,
+              message
+            });
+          } else {
+            io.to(users[senderID].socketID).emit('message:user-not-online');
   
+            if ( friend.allow_offline_messages ) {
+              const Messages = new MessagesModel();
+    
               await Messages.insert({
                 id_sending:senderID,
                 id_receiving:userID,
                 message
               });
-  
-            } catch(e) {
-              Logger.log(e);
-            } 
+            }
           }
+        } else {
+          io.to(users[senderID].socketID).emit('message:not-in-friends-list');
         }
-      } else {
-        io.to(users[senderID].socketID).emit('message:not-in-friends-list');
+      } catch(e) {
+        Logger.log(e,'socket_io');
+        Logger.log('Failed on sending for user : ' + socket.decoded_token,'socket_io');
       }
     });
 

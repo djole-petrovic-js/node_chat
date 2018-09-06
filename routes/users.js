@@ -35,7 +35,7 @@ module.exports = function(io) {
 
       return res.json(user);
     } catch(e) {
-      Logger.log(e,'users');
+      Logger.log(e,'users:userinfo');
 
       return next(genError('USERS_FETCH_INFO_FAILED'));
     }
@@ -95,7 +95,7 @@ module.exports = function(io) {
 
       return res.json({ success:true });
     } catch(e) {
-      Logger.log(e,'users');
+      Logger.log(e,'users:set_binary_settings');
 
       return next(genError('USERS_FATAL_ERROR'));
     }
@@ -186,6 +186,8 @@ module.exports = function(io) {
 
       return res.json({ success:true });
     } catch(e) {
+      Logger.log(e,'users:change_pin');
+
       return next(genError('USERS_FATAL_ERROR'));
     }
   });
@@ -260,7 +262,7 @@ module.exports = function(io) {
 
       return res.json({ success:true });
     } catch(e) {
-      Logger.log(e,'users');
+      Logger.log(e,'users:changepassword');
     
       return next(genError('USERS_FATAL_ERROR'));
     }
@@ -324,7 +326,7 @@ module.exports = function(io) {
 
       return res.json({ success:true });
     } catch(e) {
-      Logger.log(e,'users');
+      Logger.log(e,'users:delete_account');
     
       return next(genError('USERS_DELETE_ACCOUNT_FATAL_ERROR'));
     }

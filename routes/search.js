@@ -34,7 +34,7 @@ router.post('/',passport.authenticate('jwt',{ session:false }),async(req,res,nex
 
     return res.json({ result });
   } catch(e) {
-    Logger.log(e,'search');
+    Logger.log(e,'search:root');
 
     return next(genError('SEARCH_FATAL_ERROR'));
   }
