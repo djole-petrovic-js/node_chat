@@ -17,7 +17,7 @@ class Auth {
         ],
         where:{ email:body.email }
       });
-      genError('EMAIL_PASSWORD_INCORRECT')
+
       if ( !user ) {
         return { success:false,error:genError('EMAIL_PASSWORD_INCORRECT') }
       }

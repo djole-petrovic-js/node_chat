@@ -11,8 +11,7 @@ module.exports = function(io) {
 
   router.get('/',async(req,res,next) => {
     try {
-      const Notifications = new NotificationsModel();
-      const notifications = await Notifications.getAllNotifications(req.user.id_user);
+      const notifications = await new NotificationsModel().getAllNotifications(req.user.id_user);
 
       res.json(notifications);
     } catch(e) {
@@ -50,9 +49,7 @@ module.exports = function(io) {
 
   router.post('/dismiss_all',async(req,res,next) => {
     try {
-      const Notifications = new NotificationsModel();
-
-      await Notifications.deleteMultiple({
+      await new NotificationsModel().deleteMultiple({
         confirm:true,
         where:{ notification_to:req.user.id_user }
       });

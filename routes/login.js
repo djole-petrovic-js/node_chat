@@ -105,7 +105,7 @@ router.post('/',async (req,res,next) => {
       success:true,
       refreshToken,
       token:jwt.sign(
-        { id:data.user.id_user,username:data.user.username },
+        { id:data.user.id_user,username:data.user.username, date:moment().toISOString() },
         jwtOptions.secretOrKey ,
         { expiresIn: '25m' }
       )
@@ -228,10 +228,22 @@ router.post('/logout',passport.authenticate('jwt',{ session:false }),async(req,r
 
 
 
-router.get('/check_login',passport.authenticate('jwt',{ session:false }),async(req,res) => {
-  res.json({
-    isLoggedIn:!!req.user
+router.get('/check_login',passport.authenticate('jwt',{ session:false }),async(req,res,next) => {
+  const token = req.headers.authorization.split(' ')[1];
+
+  jwt.verify(token, jwtOptions.secretOrKey, function(err, decoded) {
+    if (err) {
+      return next(genError('LOGIN_FATAL_ERROR'));
+    }
+
+    const tokenDate = moment(decoded.date);
+
+    res.json({
+      isLoggedIn:!!req.user,
+      minutesExpired:moment().diff(tokenDate,'minutes') 
+    });
   });
+  
 });
 
 module.exports = router;

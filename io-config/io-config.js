@@ -23,7 +23,7 @@ module.exports = (io) => {
       Logger.log(e,'socket_io');
     }
   }
-
+  /* User maybe is not online, have to update manualy */
   // For a user with ID, find his friends, and notify them about
   // allow offline messages status.
   io.updateAOMstatus = async(userID,value) => {
@@ -48,7 +48,6 @@ module.exports = (io) => {
     } catch(e) {
       Logger.log(e,'socket_io');
     }
-    
   }
 
   io.on('connection', async(socket) => {
@@ -83,8 +82,6 @@ module.exports = (io) => {
       try {
         const { id:senderID, username:senderUsername } = socket.decoded_token;
 
-        if ( !users[senderID] ) return;
-
         const friend = users[senderID].friends.find(
           ({ id_user }) => id_user === userID
         );
@@ -98,7 +95,7 @@ module.exports = (io) => {
             });
           } else {
             io.to(users[senderID].socketID).emit('message:user-not-online');
-  
+
             if ( friend.allow_offline_messages ) {
               const Messages = new MessagesModel();
     
@@ -129,8 +126,6 @@ module.exports = (io) => {
             id_user:userID
           }
         });
-
-        if ( !users[userID] ) return;
 
         for ( let { id_user } of users[userID].friends ) {
           if ( users[id_user] ) {

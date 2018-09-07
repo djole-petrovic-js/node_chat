@@ -10,9 +10,7 @@ router.use(passport.authenticate('jwt',{ session:false }));
 
 router.get('/',async(req,res,next) => {
   try {
-    const Messages = new MessagesModel();
-
-    const allMessages = await Messages.select({
+    const messages = await  new MessagesModel().select({
       alias:'m',
       columns:['message','username as senderUsername,id_user as senderID','m.date'],
       innerJoin:{
@@ -23,7 +21,7 @@ router.get('/',async(req,res,next) => {
       }
     });
 
-    return res.json(allMessages);
+    return res.json(messages);
   } catch(e) {
     Logger.log(e,'messages:root');
 
