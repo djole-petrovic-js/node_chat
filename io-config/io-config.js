@@ -51,7 +51,18 @@ module.exports = (io) => {
   }
 
   io.on('connection', async(socket) => {
-    const userID = socket.decoded_token.id;
+    console.log('CONECTED!!! ' + socket.request.user.id);
+    socket.emit('success', {
+      message: 'success logged in!',
+    });
+    
+    try {
+      console.log(socket.request.user);
+    } catch(e) {
+      console.log('FATAL USER NOT REGISTERED')
+    }
+
+    const userID = socket.request.user.id;
 
     const [userFriends,user] = await Promise.all([
       Friend.getFriendsForUserWithID(userID),
@@ -80,7 +91,7 @@ module.exports = (io) => {
 
     socket.on('new:message',async({ userID,message }) => {
       try {
-        const { id:senderID, username:senderUsername } = socket.decoded_token;
+        const { id:senderID, username:senderUsername } = socket.request.user;
 
         const friend = users[senderID].friends.find(
           ({ id_user }) => id_user === userID
@@ -111,13 +122,15 @@ module.exports = (io) => {
         }
       } catch(e) {
         Logger.log(e,'socket_io');
-        Logger.log('Failed on sending for user : ' + socket.decoded_token,'socket_io');
+        Logger.log('Failed on sending for user : ' + socket.request.user,'socket_io');
       }
     });
 
     socket.on('disconnect', async() => {
       try {
-        const userID = socket.decoded_token.id;
+      console.log('DISCONECTED!!! ' + socket.request.user.id);
+
+        const userID = socket.request.user.id;
 
         await User.update({
           columns:['online'],

@@ -8,13 +8,13 @@ const
   cookieParser  = require('cookie-parser'),
   bodyParser    = require('body-parser'),
   io            = require('socket.io')(),
-  ioPassport    = require('passport.socketio'),
   passport      = require('passport'),
   flash         = require('connect-flash'),
   cors          = require('cors'),
   helmet        = require('helmet'),
   RateLimit     = require('express-rate-limiter'),
-  socketioJwt   = require('socketio-jwt'),
+  jwtAuth       = require('socketio-jwt-auth'),
+  ioAuth        = require('./io-config/io-auth'),
   jwtConfig     = require('./utils/passport/passport-jwt-config'),
   Logger        = require('./libs/Logger'),
   MemoryStore   = require('express-rate-limiter/lib/memoryStore'),
@@ -28,6 +28,12 @@ const
   users         = require('./routes/users')(io),
   notifications = require('./routes/notifications')(io),
   friends       = require('./routes/friends')(io);
+
+io.use(jwtAuth.authenticate({
+  secret: jwtConfig.secretOrKey,
+  algorithm: 'HS256',
+  succeedWithoutToken: true
+},ioAuth));
 
 require('./cron/cron');
 require('./io-config/io-config')(io);
@@ -56,14 +62,14 @@ app.use(passport.initialize());
 
 passport.use(require('./utils/passport/passport-strategy'));
 
-io.use(socketioJwt.authorize({
-  secret:jwtConfig.secretOrKey ,
-  handshake: true
-}));
+// io.use(socketioJwt.authorize({
+//   secret:jwtConfig.secretOrKey ,
+//   handshake: true
+// }));
 
 // API Routes
 app.use('/api/register',rateLimiter,register);
-app.use('/api/login',login);
+app.use('/api/login',rateLimiter,login);
 app.use('/api/search',search);
 app.use('/api/notifications',notifications);
 app.use('/api/friends',friends);

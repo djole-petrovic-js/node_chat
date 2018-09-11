@@ -87,16 +87,23 @@ router.post('/',async (req,res,next) => {
     }
 
     const refreshToken = randtoken.uid(256);
+    const refreshTokenSocket = randtoken.uid(256);
+    const now = moment().toISOString();
 
     await new UserModel().update({
       columns:[
-        'refresh_token','refresh_token_date',
-        'refresh_device_info_json'
+        'refresh_token',
+        'refresh_token_date',
+        'refresh_device_info_json',
+        'refresh_token_socket',
+        'refresh_token_socket_date'
       ],
       values:[
         refreshToken,
-        moment().toISOString(),
-        JSON.stringify(req.body.deviceInfo)
+        now,
+        JSON.stringify(req.body.deviceInfo),
+        refreshTokenSocket,
+        now
       ],
       where:{ id_user:data.user.id_user }
     });
@@ -104,6 +111,7 @@ router.post('/',async (req,res,next) => {
     return res.json({
       success:true,
       refreshToken,
+      refreshTokenSocket,
       token:jwt.sign(
         { id:data.user.id_user,username:data.user.username, date:moment().toISOString() },
         jwtOptions.secretOrKey ,
@@ -122,7 +130,7 @@ router.post('/refresh_token',passport.authenticate('jwt',{ session:false }),asyn
     res.json({
       success:true,
       token:jwt.sign(
-        { id:req.user.id_user , username:req.user.username },
+        { id:req.user.id_user , username:req.user.username,date:moment().toISOString() },
         jwtOptions.secretOrKey ,
         { expiresIn: '25m' }
       )
@@ -171,13 +179,6 @@ router.post('/grant_access_token',async(req,res,next) => {
       return next(genError('LOGIN_FATAL_ERROR'));
     }
 
-    const refreshTokenDate = moment(user.refresh_token_date);
-
-    // refresh token lasts for 24 hours
-    if ( moment().diff(refreshTokenDate,'hours') >= 24 ) {
-      return next(genError('LOGIN_FATAL_ERROR'));
-    }
-    
     // if user has unique device enabled
     // check if request comes from that device
     // else check the device user has logged in from last time
@@ -189,10 +190,33 @@ router.post('/grant_access_token',async(req,res,next) => {
       return next(genError('LOGIN_FATAL_ERROR'));
     }
 
+    const refreshTokenDate = moment(user.refresh_token_date);
+    let refreshToken = null;
+
+    // refresh token lasts for 24 hours
+    // if it is expired, send a new one
+    if ( moment().diff(refreshTokenDate,'hours') >= 24 ) {
+      refreshToken = randtoken.uid(256);
+
+      await new UserModel().update({
+        columns:[
+          'refresh_token','refresh_token_date',
+          'refresh_device_info_json'
+        ],
+        values:[
+          refreshToken,
+          moment().toISOString(),
+          JSON.stringify(userDeviceInfo)
+        ],
+        where:{ id_user:user.id_user }
+      });
+    }
+    
     return res.json({
       success:true,
+      refreshToken,
       token:jwt.sign(
-        { id:user.id_user , username:user.username },
+        { id:user.id_user , username:user.username,date:moment().toISOString() },
         jwtOptions.secretOrKey ,
         { expiresIn: '25m' }
       )
@@ -212,8 +236,14 @@ router.post('/logout',passport.authenticate('jwt',{ session:false }),async(req,r
     const User = new UserModel();
 
     await User.update({
-      columns:['refresh_token','refresh_token_date','refresh_device_info_json'],
-      values:[null,null,null],
+      columns:[
+        'refresh_token',
+        'refresh_token_date',
+        'refresh_device_info_json',
+        'refresh_token_socket',
+        'refresh_token_socket_date'
+      ],
+      values:[null,null,null,null,null],
       where:{ id_user:req.user.id_user }
     });
 
@@ -231,7 +261,7 @@ router.post('/logout',passport.authenticate('jwt',{ session:false }),async(req,r
 router.get('/check_login',passport.authenticate('jwt',{ session:false }),async(req,res,next) => {
   const token = req.headers.authorization.split(' ')[1];
 
-  jwt.verify(token, jwtOptions.secretOrKey, function(err, decoded) {
+  jwt.verify(token, jwtOptions.secretOrKey, (err, decoded) => {
     if (err) {
       return next(genError('LOGIN_FATAL_ERROR'));
     }
@@ -243,7 +273,6 @@ router.get('/check_login',passport.authenticate('jwt',{ session:false }),async(r
       minutesExpired:moment().diff(tokenDate,'minutes') 
     });
   });
-  
 });
 
 module.exports = router;

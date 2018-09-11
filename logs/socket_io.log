@@ -1,0 +1,12 @@
+
+        *******************************************
+        Date : 2018-9-11 13:42:52
+        TypeError: Cannot read property 'friends' of undefined 
+
+        Stack trace : TypeError: Cannot read property 'friends' of undefined
+    at Socket.socket.on (/home/djole/Desktop/data/Node_JS_Projects/node-chat/io-config/io-config.js:140:48)
+    at <anonymous>
+    at process._tickCallback (internal/process/next_tick.js:188:7) 
+
+        *******************************************
+      
