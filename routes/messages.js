@@ -16,9 +16,7 @@ router.get('/',async(req,res,next) => {
       innerJoin:{
         user:['u','m.id_sending','u.id_user']
       },
-      where:{
-        id_receiving:req.user.id_user
-      }
+      where:{ id_receiving:req.user.id_user }
     });
 
     return res.json(messages);

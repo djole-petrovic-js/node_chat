@@ -9,12 +9,15 @@ module.exports = function(io) {
 
   const FriendsModel = require('../models/friendsModel');
   const NotificationsModel = require('../models/notificationsModel');
+  const UserModel = require('../models/userModel');
+
+  const Notifications = new NotificationsModel();
+  const Friends = new FriendsModel();
+  const User = new UserModel();
 
   router.use(passport.authenticate('jwt',{ session:false }));
 
   router.get('/',async(req,res,next) => {
-    const Friends = new FriendsModel();
-
     try {
       const friends = await Friends.getFriendsForUserWithID(req.user.id_user);
 
@@ -29,8 +32,6 @@ module.exports = function(io) {
 
   router.get('/pending_requests',async(req,res,next) => {
     try {
-      const Friends = new FriendsModel();
-
       const pendingRequests = await Friends.select({
         columns:['id_user','username'],
         alias:'f',
@@ -58,8 +59,6 @@ module.exports = function(io) {
       if ( !(req.body.id_user && Types.isNumber(req.body.id_user)) ) {
         return next(genError('PENDING_FATAL_ERROR'));
       }
-
-      const Friends = new FriendsModel();
 
       await Friends.deleteMultiple({
         confirm:true,
@@ -91,8 +90,6 @@ module.exports = function(io) {
 
         return next(error); 
       }
-
-      const Friends = new FriendsModel();
 
       // check if user is actualy a friend with another user
       const [ userInFriendsList ] = await Friends.select({
@@ -127,9 +124,11 @@ module.exports = function(io) {
       await Promise.all([q1,q2]);
       await io.updateFriends(IdUserRemoving,IdFriendToRemove);
 
-      if ( io.users[IdFriendToRemove]) {
-        io.to(io.users[IdFriendToRemove].socketID).emit('friend:friend-you-removed',{ IdUserRemoving });
-      }
+      await io.emitOrSaveOperation(
+        IdFriendToRemove,
+        'friends:friend-you-removed',
+        { IdUserRemoving }
+      );
 
       return res.json({ success:true });
     } catch(e) {
@@ -150,14 +149,9 @@ module.exports = function(io) {
         return next(genError('FRIENDS_MISSING_DATA')); 
       }
 
-      const Friends = new FriendsModel();
-
       //Check if user has already added this user...
       const [ friend ] = await Friends.select({
-        where:{
-          id_friend_is:idFrom,
-          id_friend_with:idTo
-        }
+        where:{ id_friend_is:idFrom, id_friend_with:idTo }
       });
 
       if ( friend ) {
@@ -170,10 +164,7 @@ module.exports = function(io) {
 
       // Check if user has already been added by another user...
       const [ friendAlreadyAddedYou ] = await Friends.select({
-        where:{
-          id_friend_is:idTo,
-          id_friend_with:idFrom
-        }
+        where:{ id_friend_is:idTo, id_friend_with:idFrom }
       });
 
       if ( friendAlreadyAddedYou ) {
@@ -184,10 +175,13 @@ module.exports = function(io) {
         })
       }
 
-      const Notifications = new NotificationsModel();
-
-      const [ resultNotification ] = await Promise.all([
-        Notifications.insertNewNotification({
+      const [ [ userFriend ],resultNotification ] = await Promise.all([
+        User.select({
+          columns:['username'],
+          limit:1,
+          where:{ id_user:idFrom } 
+        }),
+        Notifications.insert({
           id_notification_type:1,
           notification_from:idFrom,
           notification_to:idTo
@@ -199,20 +193,20 @@ module.exports = function(io) {
         })
       ]);
 
-      res.send({ success:true });
+      const notificationToSend = {
+        id_notification:resultNotification.insertId,
+        id_notification_type:1,
+        id_user:idFrom,
+        username:userFriend.username
+      };
 
-      if ( io.users[idTo] ) {
-        const [ newNotification ] = await Notifications.select({
-          columns:['id_notification','id_notification_type','username','id_user'],
-          alias:'n',
-          innerJoin:{
-            user:['u','n.notification_from','u.id_user']
-          },
-          where:{ id_notification:resultNotification.insertId }
-        });
-        
-        io.to(io.users[idTo].socketID).emit('notification:new-notification',newNotification);
-      }
+      await io.emitOrSaveOperation(
+        idTo,
+        'notification:new-notification',
+        notificationToSend
+      );
+
+      return res.send({ success:true });
     } catch(e) {
       Logger.log(e,'friends:add_friend');
 
@@ -227,8 +221,6 @@ module.exports = function(io) {
 
     const { id_user:idUserConfirming } = req.user;
     const { id:idUserToAdd } = req.body;
-
-    const Friends = new FriendsModel()
 
     try {
       const [ friend ] = await Friends.select({
@@ -273,10 +265,8 @@ module.exports = function(io) {
     }
 
     try {
-      const Notifications = new NotificationsModel();
-
       const [ notificationResult ] = await Promise.all([
-        Notifications.insertNewNotification({
+        Notifications.insert({
           id_notification_type:2,
           notification_from:idUserConfirming,
           notification_to:idUserToAdd
@@ -292,62 +282,64 @@ module.exports = function(io) {
         userIDs:[idUserConfirming,idUserToAdd]
       });
 
-      res.json({ success:true });
+      await io.updateFriends(idUserConfirming,idUserToAdd);
 
-      io.updateFriends(idUserConfirming,idUserToAdd);
+      const [ friend ] = await Friends.select({
+        limit:1,
+        columns:['id_user','username','online'],
+        alias:'f',
+        innerJoin:{
+          user:['u','f.id_friend_with','u.id_user']
+        },
+        where:{
+          id_friend_is:idUserConfirming,
+          id_friend_with:idUserToAdd,
+          confirmed:1,
+        }
+      });
 
-      if ( io.users[idUserConfirming] ) {
-        const [ friend ] = await Friends.select({
-          limit:1,
-          columns:['id_user','username','online'],
-          alias:'f',
-          innerJoin:{
-            user:['u','f.id_friend_with','u.id_user']
-          },
-          where:{
-            id_friend_is:idUserConfirming,
-            id_friend_with:idUserToAdd,
-            confirmed:1,
-          }
-        });
+      await io.emitOrSaveOperation(
+        idUserConfirming,
+        'friends:user-confirmed',
+        { friend }
+      );
 
-        io.to(io.users[idUserConfirming].socketID).emit(
-          'friends:user-confirmed',{ friend }
-        );
-      }
+      const [ friend2 ] = await Friends.select({
+        limit:1,
+        columns:['id_user','username','online'],
+        alias:'f',
+        innerJoin:{
+          user:['u','f.id_friend_with','u.id_user']
+        },
+        where:{
+          id_friend_is:idUserToAdd,
+          id_friend_with:idUserConfirming,
+          confirmed:1,
+        }
+      });
 
-      if ( io.users[idUserToAdd] ) {
-        const [ friend ] = await Friends.select({
-          limit:1,
-          columns:['id_user','username','online'],
-          alias:'f',
-          innerJoin:{
-            user:['u','f.id_friend_with','u.id_user']
-          },
-          where:{
-            id_friend_is:idUserToAdd,
-            id_friend_with:idUserConfirming,
-            confirmed:1,
-          }
-        });
+      await io.emitOrSaveOperation(
+        idUserToAdd,
+        'friends:user-confirmed',
+        { friend:friend2 }
+      );
 
-        io.to(io.users[idUserToAdd].socketID).emit(
-          'friends:user-confirmed',{ friend }
-        );
+      const [ newNotification ] = await Notifications.select({
+        columns:['id_notification','id_notification_type','username','id_user'],
+        alias:'n',
+        innerJoin:{
+          user:['u','n.notification_from','u.id_user']
+        },
+        where:{ id_notification:notificationResult.insertId }
+      });
 
-        const [ newNotification ] = await Notifications.select({
-          columns:['id_notification','id_notification_type','username','id_user'],
-          alias:'n',
-          innerJoin:{
-            user:['u','n.notification_from','u.id_user']
-          },
-          where:{ id_notification:notificationResult.insertId }
-        });
+      await io.emitOrSaveOperation(
+        idUserToAdd,
+        'notification:new-notification',
+        newNotification
+      );
 
-        io.to(io.users[idUserToAdd].socketID).emit(
-          'notification:new-notification',newNotification
-        );
-      }
+      return res.json({ success:true });
     } catch(e) {
       Logger.log(e,'friends:confirm_friend');
 

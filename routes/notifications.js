@@ -6,12 +6,20 @@ module.exports = function(io) {
     router   = require('express').Router();
 
   const NotificationsModel = require('../models/notificationsModel');
+  const Notification = new NotificationsModel();
 
   router.use(passport.authenticate('jwt',{ session:false }));
 
   router.get('/',async(req,res,next) => {
     try {
-      const notifications = await new NotificationsModel().getAllNotifications(req.user.id_user);
+      const notifications = await Notification.select({
+        columns:['id_notification','id_notification_type','username','id_user'],
+        alias:'n',
+        innerJoin:{
+          user:['u','n.notification_from','u.id_user']
+        },
+        where:{ notification_to:req.user.id_user }
+      });
 
       res.json(notifications);
     } catch(e) {
@@ -33,9 +41,7 @@ module.exports = function(io) {
         });
       }
 
-      const Notifications = new NotificationsModel();
-
-      await Notifications.deleteOne({
+      await Notification.deleteOne({
         where:{ id_notification:notificationID }
       });
 
@@ -49,7 +55,7 @@ module.exports = function(io) {
 
   router.post('/dismiss_all',async(req,res,next) => {
     try {
-      await new NotificationsModel().deleteMultiple({
+      await Notification.deleteMultiple({
         confirm:true,
         where:{ notification_to:req.user.id_user }
       });

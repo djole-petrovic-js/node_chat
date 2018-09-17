@@ -1,24 +1,27 @@
 module.exports = function(io) {
   const
-    router    = require('express').Router(),
-    passport  = require('passport'),
-    mailer    = require('nodemailer'),
-    bluebird  = require('bluebird'),
-    Form      = require('../libs/Form'),
-    Password  = require('../libs/password'),
-    Validator = require('jsonschema').Validator,
-    genError  = require('../utils/generateError'),
-    Logger    = require('../libs/Logger'),
-    UserModel = require('../models/userModel');
+    router       = require('express').Router(),
+    passport     = require('passport'),
+    mailer       = require('nodemailer'),
+    bluebird     = require('bluebird'),
+    Form         = require('../libs/Form'),
+    Password     = require('../libs/password'),
+    Validator    = require('jsonschema').Validator,
+    genError     = require('../utils/generateError'),
+    Logger       = require('../libs/Logger'),
+    FriendsModel = require('../models/friendsModel'),
+    UserModel    = require('../models/userModel');
 
+  const User = new UserModel();
+  const Friend = new FriendsModel();
+  const OperationModel = require('../models/operationModel');
   const validateDeviceInfo = require('../utils/validateDeviceInfo');
+  const deviceInfoRules = require('../config/deviceInfo');
 
   router.use(passport.authenticate('jwt',{ session:false }));
 
   router.get('/userinfo',async(req,res,next) => {
     try {
-      const User = new UserModel();
-
       const [ user ] = await User.select({
         columns:[
           'username','email',
@@ -43,6 +46,40 @@ module.exports = function(io) {
 
 
 
+
+  router.get('/get_socket_operations',async(req,res) => {
+    try {
+      const operations = await new OperationModel().select({
+        where:{ id_user:req.user.id_user }
+      });
+
+      return res.json({ success:true, operations });
+    } catch(e) {
+      return next(genError('USERS_FATAL_ERROR'));
+    }
+  });
+
+
+  router.post('/delete_operations',async(req,res,next) => {
+    try {
+      // if operation id is not sent, delete all operations
+      // else delete just one operation
+      const where = req.body.id_operation
+        ? { id_operation:req.body.id_operation,id_user:req.user.id_user }
+        : { id_user:req.user.id_user };
+
+      await new OperationModel().deleteMultiple({
+        confirm:true, where
+      });
+
+      return res.json({ success:true });
+    } catch(e) {
+      return next(genError('USERS_FATAL_ERROR'));
+    }
+  });
+
+
+
   router.post('/set_binary_settings',async(req,res,next) => {
     try {
       const isValidRequest = new Validator().validate(req.body,{
@@ -58,8 +95,6 @@ module.exports = function(io) {
       if ( !(isValidRequest && [0,1].includes(req.body.value)) ) {
         return next(genError('USERS_FATAL_ERROR'));
       }
-
-      const User = new UserModel();
 
       if ( req.body.setting === 'unique_device' ) {
         if ( req.body.value === 0 ) {
@@ -106,17 +141,31 @@ module.exports = function(io) {
   // if exists, ask for his old pin
   router.post('/change_pin',async(req,res,next) => {
     try {
-      const { pin } = req.body;
+      const isValidRequest = new Validator().validate(req.body,{
+        type:'object',
+        additionalProperties:false,
+        required:['pin','deviceInfo'],
+        properties:{
+          pin:{ type:'string' },
+          pinConfirmed:{ type:'string' },
+          oldPin:{ type:'string' },
+          deviceInfo:deviceInfoRules
+        }
+      }).valid;
 
-      if ( !pin ) {
-        return next(genError('USERS_FATAL_ERROR')); 
+      if ( !isValidRequest ) {
+        return next(genError('USERS_FATAL_ERROR'));
       }
 
-      const User = new UserModel();
+      const { pin } = req.body;
 
-      let [ user ] = await User.select({
+      const [ user ] = await User.select({
         where:{ id_user:req.user.id_user }
       });
+
+      if ( !validateDeviceInfo(user,req.body.deviceInfo) ) {
+        return next(genError('UNIQUE_DEVICE_ERROR'));
+      }
 
       const form = new Form({ pin:'bail|required|regex:^[1-9][0-9]{3}$' });
 
@@ -182,7 +231,11 @@ module.exports = function(io) {
         `smtps://${ process.env.EMAIL }:${ process.env.EMAIL_PASSWORD }@smtp.gmail.com`
       ));
 
-      try { await transporter.sendMail(mailOptions); } catch(e) { }
+      try {
+        await transporter.sendMail(mailOptions);
+      } catch(e) {
+        Logger.log(e,'users:change_pin');
+      }
 
       return res.json({ success:true });
     } catch(e) {
@@ -203,12 +256,19 @@ module.exports = function(io) {
         properties:{
           currentPassword:{ type:'string' },
           newPassword:{ type:'string' },
-          confirmNewPassword:{ type:'string' }
+          confirmNewPassword:{ type:'string' },
+          deviceInfo:deviceInfoRules
         }
       }).valid;
 
       if ( !isValid ) {
         return next(genError('USERS_INVALID_DATA'));
+      }
+
+      const [ user ] = await User.select({ where:{ id_user:req.user.id_user } });
+
+      if ( !validateDeviceInfo(user,req.body.deviceInfo) ) {
+        return next(genError('UNIQUE_DEVICE_ERROR'));
       }
 
       const passwordRegex = '^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z._]{8,25}$';
@@ -226,8 +286,6 @@ module.exports = function(io) {
         return next(genError('USERS_INVALID_DATA'));
       }
 
-      const User = new UserModel();
-      const [ user ] = await User.select({ where:{ id_user:req.user.id_user } });
       const { isMatched } = await new Password(req.body.currentPassword).comparePasswords(user.password);
 
       if ( !isMatched ) {
@@ -258,7 +316,11 @@ module.exports = function(io) {
         `smtps://${ process.env.EMAIL }:${ process.env.EMAIL_PASSWORD }@smtp.gmail.com`
       ));
 
-      try { await transporter.sendMail(mailOptions); } catch(e) { }
+      try {
+        await transporter.sendMail(mailOptions);
+      } catch(e) {
+        Logger.log(e,'users:changepassword');
+      }
 
       return res.json({ success:true });
     } catch(e) {
@@ -279,24 +341,13 @@ module.exports = function(io) {
         required:['password','deviceInfo'],
         properties:{
           password:{ type:'string' },
-          deviceInfo:{
-            type:'object',
-            additionalProperties:false,
-            requred:['uuid','serial','manufacturer'],
-            properties:{
-              uuid:{ type:['string',null] },
-              serial:{ type:['string',null] },
-              manufacturer:{ type:['string',null] }
-            }
-          }
+          deviceInfo:deviceInfoRules
         }
       }).valid;
 
       if ( !isValidRequest ) {
         return next(genError('USERS_DELETE_ACCOUNT_FATAL_ERROR'));
       }
-
-      const User = new UserModel();
 
       const [ user ] = await User.select({
         where:{ id_user:req.user.id_user }
@@ -306,8 +357,8 @@ module.exports = function(io) {
         return next(genError('USERS_DELETE_ACCOUNT_FATAL_ERROR'));
       }
 
-      if ( user.unique_device && !validateDeviceInfo(user,req.body.deviceInfo) ) {
-        return next(genError('USERS_DELETE_ACCOUNT_FATAL_ERROR'))
+      if ( !validateDeviceInfo(user,req.body.deviceInfo) ) {
+        return next(genError('UNIQUE_DEVICE_ERROR'));
       }
 
       const { isMatched } = await new Password(req.body.password).comparePasswords(user.password);
@@ -319,10 +370,20 @@ module.exports = function(io) {
         });
       }
 
-      await User.deleteMultiple({
-        confirm:true,
-        where:{ id_user:req.user.id_user }
-      });
+      const friends = await Friend.getFriendsForUserWithID(req.user.id_user);
+
+      await Promise.all([
+        User.deleteMultiple({
+          confirm:true,
+          where:{ id_user:req.user.id_user }
+        }),
+        ...friends.map(friend => io.emitOrSaveOperation(
+          friend.id_user,
+          'friends:friend-you-removed',
+          { IdUserRemoving:req.user.id_user },
+          friend
+        ))
+      ]);
 
       return res.json({ success:true });
     } catch(e) {

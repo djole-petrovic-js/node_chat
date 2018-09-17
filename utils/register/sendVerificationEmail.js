@@ -17,7 +17,7 @@ const sendVerificationEmail = async({ to , token }) => {
         <p>Press link below to activate your account</p>
         <a href="${ process.env.SITE_URL }/api/register/verify_token?token=${ token }"
         >Click here</a>
-        <p>If this email is unexpcted, please just ignore it.</p>
+        <p>If this email is unexpected, please just ignore it.</p>
       `
     };
 

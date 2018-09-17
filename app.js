@@ -3,26 +3,27 @@ const path = require('path');
 require('dotenv').config({ path:path.join(__dirname,'.env') });
 
 const
-  express       = require('express'),
-  logger        = require('morgan'),
-  cookieParser  = require('cookie-parser'),
-  bodyParser    = require('body-parser'),
-  io            = require('socket.io')(),
-  passport      = require('passport'),
-  flash         = require('connect-flash'),
-  cors          = require('cors'),
-  helmet        = require('helmet'),
-  RateLimit     = require('express-rate-limiter'),
-  jwtAuth       = require('socketio-jwt-auth'),
-  ioAuth        = require('./io-config/io-auth'),
-  jwtConfig     = require('./utils/passport/passport-jwt-config'),
-  Logger        = require('./libs/Logger'),
-  MemoryStore   = require('express-rate-limiter/lib/memoryStore'),
-  app           = express();
+  express     = require('express'),
+  logger      = require('morgan'),
+  bodyParser  = require('body-parser'),
+  io          = require('socket.io')(),
+  passport    = require('passport'),
+  cors        = require('cors'),
+  helmet      = require('helmet'),
+  jwtAuth     = require('socketio-jwt-auth'),
+  ioAuth      = require('./io-config/io-auth'),
+  jwtConfig   = require('./utils/passport/passport-jwt-config'),
+  Logger      = require('./libs/Logger'),
+  app         = express();
+
+global.Logger = Logger;
+
+require('./cron/removeNotActivatedAccounts');
+require('./io-config/io-main')(io);
 
 const 
   register      = require('./routes/register'),
-  login         = require('./routes/login'),
+  login         = require('./routes/login')(io),
   search        = require('./routes/search'),
   messages      = require('./routes/messages'),
   users         = require('./routes/users')(io),
@@ -32,22 +33,13 @@ const
 io.use(jwtAuth.authenticate({
   secret: jwtConfig.secretOrKey,
   algorithm: 'HS256',
-  succeedWithoutToken: true
-},ioAuth));
-
-require('./cron/cron');
-require('./io-config/io-config')(io);
+},ioAuth(io)));
 
 process.on('unhandledRejection',(reason) => {
-  Logger.log(reason,'unhandled_error');
+  Logger.log(reason,'unhandled_error').then(() => {
+    process.exit();
+  });
 });
-
-const rateLimiter = new RateLimit({
-  windowMs: 15*60*1000, // 15 minutes
-  max: 100,
-  delayMs: 0, // disabled
-  db : new MemoryStore()
-}).middleware();
 
 app.enable('trust proxy');
 app.use(helmet());
@@ -55,21 +47,13 @@ app.use(logger('dev'));
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(flash());
 app.use(passport.initialize());
 
 passport.use(require('./utils/passport/passport-strategy'));
 
-// io.use(socketioJwt.authorize({
-//   secret:jwtConfig.secretOrKey ,
-//   handshake: true
-// }));
-
 // API Routes
-app.use('/api/register',rateLimiter,register);
-app.use('/api/login',rateLimiter,login);
+app.use('/api/register',register);
+app.use('/api/login',login);
 app.use('/api/search',search);
 app.use('/api/notifications',notifications);
 app.use('/api/friends',friends);

@@ -1,6 +1,5 @@
-const 
-  Model = require('./model'),
-  Password = require('../libs/password');
+const Model = require('./model');
+const Password = require('../libs/password');
 
 class UserModel extends Model {
   constructor(tableName) {
@@ -9,20 +8,16 @@ class UserModel extends Model {
     this.tableName = tableName || 'user';
   }
 
-  insertNewUser(userOptions) {
-    return new Promise(async (resolve,reject) => {
-      try {
-        const password = new Password(userOptions.password);
+  async insertNewUser(userOptions) {
+    try {
+      const password = new Password(userOptions.password);
 
-        userOptions.password = await password.hashPassword();
+      userOptions.password = await password.hashPassword();
 
-        const newInsertedUser = await this.insert(userOptions);
-
-        resolve(newInsertedUser);
-      } catch(e) {
-        return reject(e);
-      }
-    });
+      return await this.insert(userOptions);
+    } catch(e) {
+      throw e;
+    }
   }
 }
 

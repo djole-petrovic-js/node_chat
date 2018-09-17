@@ -1,37 +1,33 @@
 const 
   express       = require('express'),
   uuidV4        = require('uuid/v4'),
-  Types         = require('../libs/types'),
   UserModel     = require('../models/userModel'),
   TokenModel    = require('../models/tokenModel'),
-  ErrorsModel   = require('../models/errorsModel'),
-  validateForm  = require('../utils/register/validateForm'),
   genError      = require('../utils/generateError'),
   Logger        = require('../libs/Logger'),
   Password      = require('../libs/password'),
   JSONvalidator = require('jsonschema').Validator,
+  Form          = require('../libs/Form'),
   router        = express.Router();
 
-const sendVerificationEmail 
-  = require('../utils/register/sendVerificationEmail');
-
-const checkIfUsernameOrEmailExists 
-  = require('../utils/register/checkIfUsernameOrEmailExists');
+const sendVerificationEmail = require('../utils/register/sendVerificationEmail');
+const checkIfUsernameOrEmailExists = require('../utils/register/checkIfUsernameOrEmailExists');
+const deviceInfoRules = require('../config/deviceInfo');
+const User = new UserModel();
+const Token = new TokenModel();
 
 router.get('/verify_token',async(req,res) => {
   try {
-    const Token = new TokenModel();
-
-    if ( typeof req.query.token !== 'string' ) {
-      return res.send('Token is missing, request another one...');
-    }
-  
     const token = req.query.token;
 
     if ( !token ) {
       return res.send('Token is missing, request another one...');
     }
 
+    if ( typeof req.query.token !== 'string' ) {
+      return res.send('Token is missing, request another one...');
+    }
+  
     const sql = `
       SELECT t.id_user,token,account_activated
       FROM token t
@@ -41,32 +37,15 @@ router.get('/verify_token',async(req,res) => {
       LIMIT 1
     `;
 
-    const userTokenResult = await Token.executeCustomQuery(sql,[token]);
-
-    if ( userTokenResult.length > 1 ) {
-      try {
-        const Errors = new ErrorsModel();
-
-        await Errors.insertNewError(
-          'Tokens UUID',
-          `There seems to be more than one tokens,
-          length is : ${ userTokenResult.length }`
-        );
-
-      } catch(e) { } 
-    }
-
-    const [ userToken ] = userTokenResult;
+    const [ userToken ] = await Token.executeCustomQuery(sql,[token]);
 
     if ( !userToken ) {
       return res.send('Token not found or not valid,please request another one...');
     }
 
-    if ( userToken.account_activated === 1 ) {
+    if ( userToken.account_activated ) {
       return res.send('You have already activated your account...');
     }
-
-    const User = new UserModel();
 
     await User.update({
       columns:['account_activated'],
@@ -117,9 +96,6 @@ router.post('/checkemailusername',async (req,res,next) => {
 
 router.post('/',async (req,res,next) => {
   try {
-    const { username,email } = req.body;
-    
-    // In production, remove null values from device info.
     const isValidRequest = new JSONvalidator().validate(req.body,{
       type:'object',
       properties:{
@@ -127,20 +103,11 @@ router.post('/',async (req,res,next) => {
         password:{ type:'string' },
         confirmPassword:{ type:'string' },
         email:{ type:'string',format:'email' },
-        deviceInfo:{
-          type:'object',
-          properties:{
-            uuid:{ type:['string',null] },
-            serial:{ type:['string',null] },
-            manufacturer:{ type:['string',null] }
-          },
-          required:['uuid','serial','manufacturer'],
-          additionalProperties:false
-        }
+        deviceInfo:deviceInfoRules
       },
       required:['username','password','confirmPassword','email','deviceInfo'],
       additionalProperties:false
-    }).valid
+    }).valid;
 
     if ( !isValidRequest) {
       return res.json({
@@ -149,54 +116,54 @@ router.post('/',async (req,res,next) => {
       });
     }
 
-    // exlude device info from validation (???)
-    const deviceInfo = req.body.deviceInfo;
+    const usernameRegex = '^[a-zA-Z0-9\\._]{5,20}$';
+    const passwordRegex = '^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z._]{8,16}$';
 
-    delete req.body.deviceInfo;
+    const form = new Form({
+      username:`bail|required|minlength:5|maxlength:20|regex:${usernameRegex}`,
+      password:`bail|required|minlength:8|maxlength:16|regex:${passwordRegex}:g|same:confirmPassword`,
+      confirmPassword:'required',
+      email:'bail|required|email'
+    });
 
-    const form = await validateForm(req.body);
+    form.bindValues(req.body);
+    form.validate();
 
-    if ( !form.isValid ) {
+    if ( !form.isValid() ) {
       return res.json({
         errors:form.errors,
         errorCode:'REGISTER_DATA_NOT_VALID'
       });
     }
 
-    const usernameAndEmailInfo = 
-      await checkIfUsernameOrEmailExists({ username , email });
+    const info = await checkIfUsernameOrEmailExists({
+      username:req.body.username,
+      email:req.body.email
+    });
 
-    if (
-      usernameAndEmailInfo.usernameAlreadyExists ||
-      usernameAndEmailInfo.emailAlreadyExists
-    ) {
-      usernameAndEmailInfo.errorCode = usernameAndEmailInfo.usernameAlreadyExists
+    if ( info.usernameAlreadyExists || info.emailAlreadyExists ) {
+      info.errorCode = info.usernameAlreadyExists
         ? 'REGISTER_USERNAME_EXISTS'
         : 'REGISTER_EMAIL_EXISTS';
 
-      return res.json(usernameAndEmailInfo);
+      return res.json(info);
     }
 
-    const userToInsert = {
-      username,
+    const result = await User.insertNewUser({
+      username:req.body.username,
       password:req.body.password,
-      email,
-      device_uuid:deviceInfo.uuid,
-      device_serial:deviceInfo.serial,
-      device_manufacturer:deviceInfo.manufacturer,
-    };
+      email:req.body.email,
+      device_uuid:req.body.deviceInfo.uuid,
+      device_serial:req.body.deviceInfo.serial,
+      device_manufacturer:req.body.deviceInfo.manufacturer,
+    });
 
-    const
-      User   = new UserModel(),
-      Token  = new TokenModel(),
-      result = await User.insertNewUser(userToInsert),
-      token  = uuidV4(),
-      userID = result.insertId;
+    const token = uuidV4();
 
-    await Token.insertOrUpdateToken({ userID,token });
+    await Token.insertOrUpdateToken({ userID:result.insertId,token });
 
     try {
-      await sendVerificationEmail({ to:email,token });
+      await sendVerificationEmail({ to:req.body.email,token });
     } catch(e) {
       Logger.log(e,'register:root');
 
@@ -228,9 +195,6 @@ router.post('/resend_confirmation_email',async(req,res,next) => {
     if ( !isValidRequest ) {
       return next(genError('REGISTER_DATA_NOT_VALID'));
     }
-
-    const User = new UserModel();
-    const Token = new TokenModel();
 
     const [ user ] = await User.select({
       where:{ email:req.body.email }

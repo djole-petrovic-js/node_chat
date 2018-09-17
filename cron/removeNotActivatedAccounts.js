@@ -1,14 +1,12 @@
 const cron = require('node-cron');
-const ErrorsModel = require('../models/errorsModel');
 const UserModel = require('../models/userModel');
 const Logger = require('../libs/Logger');
 
 /*
  * Find all users that didnt activate their accounts
  * after seven days, and delete them.
- * Maybe even blacklist them?
 */
-cron.schedule('* */1 * * *',async() => {
+cron.schedule('* * 0,12 * * *',async() => {
   try {
     const User = new UserModel();
 
@@ -19,7 +17,7 @@ cron.schedule('* */1 * * *',async() => {
     `;
   
     const usersToDelete = await User.executeCustomQuery(sql,[]);  
-  
+
     if ( usersToDelete.length === 0 ) return;
   
     const allUsersIDs = [] , allUsersPlaceholder = [];
@@ -38,13 +36,14 @@ cron.schedule('* */1 * * *',async() => {
       deleteNotActivatedAccountsSQL,allUsersIDs
     );
 
-    if ( deleteNotActivatedAccounts.affectedRows !== usersToDelete.length) {
+    if ( deleteNotActivatedAccounts.affectedRows !== usersToDelete.length ) {
       Logger.log('Could not delete all user accounts','cron');
     }
+
+    Logger.log(`Removed ${usersToDelete.length} accounts.`,'cron');
   } catch(e) {
     Logger.log(e,'cron');
   }
-
-},false);
+},true);
 
 module.exports = cron;
