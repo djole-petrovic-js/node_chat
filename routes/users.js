@@ -2,8 +2,6 @@ module.exports = function(io) {
   const
     router       = require('express').Router(),
     passport     = require('passport'),
-    mailer       = require('nodemailer'),
-    bluebird     = require('bluebird'),
     Form         = require('../libs/Form'),
     Password     = require('../libs/password'),
     Validator    = require('jsonschema').Validator,
@@ -215,28 +213,6 @@ module.exports = function(io) {
         where:{ id_user:req.user.id_user }
       });
 
-      const mailOptions = {
-        to:user.email,
-        from:process.env.EMAIL,
-        subject:'PIN Change.',
-        html:`
-          <h1>No History Chat | PIN has changed</h1>
-          <p>Your PIN has been changed.</p>
-          <p>If this wasn't you, please reply to this email.</p>
-          <p>If this email is not expected, please just ignore it.</p>
-        `
-      };
-
-      const transporter = bluebird.promisifyAll(mailer.createTransport(
-        `smtps://${ process.env.EMAIL }:${ process.env.EMAIL_PASSWORD }@smtp.gmail.com`
-      ));
-
-      try {
-        await transporter.sendMail(mailOptions);
-      } catch(e) {
-        Logger.log(e,'users:change_pin');
-      }
-
       return res.json({ success:true });
     } catch(e) {
       Logger.log(e,'users:change_pin');
@@ -299,28 +275,6 @@ module.exports = function(io) {
         values:[hash],
         where:{ id_user:req.user.id_user }
       });
-
-      const mailOptions = {
-        to:user.email,
-        from:process.env.EMAIL,
-        subject:'Password Change.',
-        html:`
-          <h1>No History Chat | Password has changed</h1>
-          <p>Your password has been changed.</p>
-          <p>If this wasn't you, please reply to this email.</p>
-          <p>If this email is not expected, please just ignore it.</p>
-        `
-      };
-
-      const transporter = bluebird.promisifyAll(mailer.createTransport(
-        `smtps://${ process.env.EMAIL }:${ process.env.EMAIL_PASSWORD }@smtp.gmail.com`
-      ));
-
-      try {
-        await transporter.sendMail(mailOptions);
-      } catch(e) {
-        Logger.log(e,'users:changepassword');
-      }
 
       return res.json({ success:true });
     } catch(e) {

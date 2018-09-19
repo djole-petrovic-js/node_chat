@@ -11,6 +11,7 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "@sendgrid/mail": "^6.3.1",
     "bcrypt-nodejs": "*",
     "bluebird": "^3.5.0",
     "body-parser": "~1.15.1",
@@ -28,7 +29,6 @@
     "morgan": "~1.7.0",
     "mysql2": "^1.2.0",
     "node-cron": "^1.1.3",
-    "nodemailer": "^4.0.1",
     "passport": "*",
     "passport-jwt": "^2.2.1",
     "rand-token": "^0.4.0",

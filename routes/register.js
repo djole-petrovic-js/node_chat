@@ -10,7 +10,7 @@ const
   Form          = require('../libs/Form'),
   router        = express.Router();
 
-const sendVerificationEmail = require('../utils/register/sendVerificationEmail');
+const sendEmail = require('../utils/sendEmail');
 const checkIfUsernameOrEmailExists = require('../utils/register/checkIfUsernameOrEmailExists');
 const deviceInfoRules = require('../config/deviceInfo');
 const User = new UserModel();
@@ -163,7 +163,18 @@ router.post('/',async (req,res,next) => {
     await Token.insertOrUpdateToken({ userID:result.insertId,token });
 
     try {
-      await sendVerificationEmail({ to:req.body.email,token });
+      await sendEmail({
+        to:req.body.email,
+        subject:'Activate your account',
+        html:`
+          <h1>Activate your account</h1>
+          <h2>Welcome to No History Chat!</h2>
+          <p>Press link below to activate your account</p>
+          <a href="${ process.env.SITE_URL }/api/register/verify_token?token=${ token }"
+          >Click here</a>
+          <p>If this email is unexpected, please just ignore it.</p>
+        `
+      });
     } catch(e) {
       Logger.log(e,'register:root');
 
@@ -218,7 +229,18 @@ router.post('/resend_confirmation_email',async(req,res,next) => {
 
     await Promise.all([
       Token.insertOrUpdateToken({ userID:user.id_user,token }),
-      sendVerificationEmail({ to:user.email,token })
+      sendEmail({
+        to:user.email,
+        subject:'Activate your account',
+        html:`
+          <h1>Activate your account</h1>
+          <h2>Welcome to No History Chat!</h2>
+          <p>Press link below to activate your account</p>
+          <a href="${ process.env.SITE_URL }/api/register/verify_token?token=${ token }"
+          >Click here</a>
+          <p>If this email is unexpected, please just ignore it.</p>
+        `
+      }),
     ]);
 
     return res.json({ success:true });
