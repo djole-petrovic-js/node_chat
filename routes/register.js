@@ -40,11 +40,19 @@ router.get('/verify_token',async(req,res) => {
     const [ userToken ] = await Token.executeCustomQuery(sql,[token]);
 
     if ( !userToken ) {
-      return res.send('Token not found or not valid,please request another one...');
+      return res.send(`
+        <h1>No History Chat</h1>
+        <h2>Account activation</h2>
+        <p>Token not found or not valid,please request another one.</p>
+      `);
     }
 
     if ( userToken.account_activated ) {
-      return res.send('You have already activated your account...');
+      return res.send(`
+        <h1>No History Chat</h1>
+        <h2>Account activation</h2>
+        <p>You have already activated your account.</p>
+      `);
     }
 
     await User.update({
@@ -53,12 +61,19 @@ router.get('/verify_token',async(req,res) => {
       where:{ id_user:userToken.id_user }
     });
 
-    res.send('Your account is activated, you can now log in...');
-
+    return res.send(`
+      <h1>No History Chat</h1>
+      <h2>Account activation</h2>
+      <p>Your account is activated, you can now log in.</p>
+    `);
   } catch(e) {
     Logger.log(e,'register:verify_token');
 
-    return res.send('Error while verifing your token, please try again!');
+    return res.send(`
+      <h1>No History Chat</h1>
+      <h2>Account activation</h2>
+      <p>Error while verifing your token, please try again!</p>
+    `);
   }
 });
 

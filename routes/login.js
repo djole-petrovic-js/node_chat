@@ -69,7 +69,7 @@ module.exports = (io) => {
         return next(data.error);
       }
 
-      const refreshToken = randtoken.uid(256);
+      const refreshToken = randtoken.uid(255);
       const date = moment().toISOString();
 
       await new UserModel().update({
@@ -167,9 +167,9 @@ module.exports = (io) => {
       // refresh token lasts for 24 hours
       // if it is expired, send a new one
       if ( moment().diff(refreshTokenDate,'hours') >= 24 ) {
-        refreshToken = randtoken.uid(256);
+        refreshToken = randtoken.uid(255);
 
-        await new UserModel().update({
+        await User.update({
           columns:[
             'refresh_token','refresh_token_date',
             'refresh_device_info_json'
@@ -197,7 +197,7 @@ module.exports = (io) => {
 
       return next(genError('LOGIN_FATAL_ERROR'));
     }
-  })
+  });
 
 
 
