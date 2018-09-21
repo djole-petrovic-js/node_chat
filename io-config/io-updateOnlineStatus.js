@@ -9,7 +9,7 @@ const updateOnlineStatus = (io,Friend) => async(userID,value) => {
       friend
     )));
   } catch(e) {
-    global.Logger.log(e,'socket_io');
+    await global.Logger.log(e,'socket_io:update_online_status');
   }
 }
 

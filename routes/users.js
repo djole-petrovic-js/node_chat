@@ -6,35 +6,32 @@ module.exports = function(io) {
     Password     = require('../libs/password'),
     Validator    = require('jsonschema').Validator,
     genError     = require('../utils/generateError'),
-    Logger       = require('../libs/Logger'),
-    FriendsModel = require('../models/friendsModel'),
-    UserModel    = require('../models/userModel');
+    Logger       = require('../libs/Logger');
 
-  const User = new UserModel();
-  const Friend = new FriendsModel();
-  const OperationModel = require('../models/operationModel');
   const validateDeviceInfo = require('../utils/validateDeviceInfo');
   const deviceInfoRules = require('../config/deviceInfo');
+
+  const { db:{ Operation,User,Friend } } = require('../Models/Models');
 
   router.use(passport.authenticate('jwt',{ session:false }));
 
   router.get('/userinfo',async(req,res,next) => {
     try {
-      const [ user ] = await User.select({
-        columns:[
+      const user = await User.findOne({
+        attributes:[
           'username','email',
           'date_created','allow_offline_messages',
           'unique_device','pin_login_enabled',
           'pin'
         ],
         where:{ id_user:req.user.id_user },
-        limit:1
       });
-
       // notifify that user has set his pin, so he can change it
-      user.pin = !!user.pin;
+      const settings = await user.get();
 
-      return res.json(user);
+      settings.pin = !!user.pin;
+
+      return res.json(settings);
     } catch(e) {
       Logger.log(e,'users:userinfo');
 
@@ -45,9 +42,9 @@ module.exports = function(io) {
 
 
 
-  router.get('/get_socket_operations',async(req,res) => {
+  router.get('/get_socket_operations',async(req,res,next) => {
     try {
-      const operations = await new OperationModel().select({
+      const operations = await Operation.all({
         where:{ id_user:req.user.id_user }
       });
 
@@ -66,9 +63,7 @@ module.exports = function(io) {
         ? { id_operation:req.body.id_operation,id_user:req.user.id_user }
         : { id_user:req.user.id_user };
 
-      await new OperationModel().deleteMultiple({
-        confirm:true, where
-      });
+      await Operation.destroy({ where });
 
       return res.json({ success:true });
     } catch(e) {
@@ -97,15 +92,15 @@ module.exports = function(io) {
       if ( req.body.setting === 'unique_device' ) {
         if ( req.body.value === 0 ) {
           await User.update({
-            columns:['pin_login_enabled'],
-            values:[0],
+            pin_login_enabled:0
+          },{
             where:{ id_user:req.user.id_user }
           });
         }
       }
 
       if ( req.body.setting === 'pin_login_enabled' ) {
-        const [ user ] = await User.select({ where:{ id_user:req.user.id_user } });
+        const user = await User.findOne({ where:{ id_user:req.user.id_user } });
 
         if ( !user.unique_device ) {
           return next(genError('PIN_UNIQUE_DEVICE_OFF'));
@@ -121,8 +116,8 @@ module.exports = function(io) {
       }
 
       await User.update({
-        columns:[req.body.setting],
-        values:[req.body.value],
+        [req.body.setting]:req.body.value
+      },{
         where:{ id_user:req.user.id_user }
       });
 
@@ -157,7 +152,7 @@ module.exports = function(io) {
 
       const { pin } = req.body;
 
-      const [ user ] = await User.select({
+      const user = await User.findOne({
         where:{ id_user:req.user.id_user }
       });
 
@@ -179,14 +174,13 @@ module.exports = function(io) {
         const hashedPin = await new Password(pin).hashPassword();
 
         await User.update({
-          columns:['pin'],
-          values:[hashedPin],
+          pin:hashedPin
+        },{
           where:{ id_user:req.user.id_user }
         });
 
         return res.json({ success:true });
       }
-
       // pin is already set, now we need to change it.
       // pin is already verified, so compare it to confirm PIN
       // and verify old pin
@@ -208,8 +202,8 @@ module.exports = function(io) {
       const hashedPin =  await new Password(newPIN).hashPassword();
 
       await User.update({
-        columns:['pin'],
-        values:[hashedPin],
+        pin:hashedPin
+      },{
         where:{ id_user:req.user.id_user }
       });
 
@@ -241,7 +235,7 @@ module.exports = function(io) {
         return next(genError('USERS_INVALID_DATA'));
       }
 
-      const [ user ] = await User.select({ where:{ id_user:req.user.id_user } });
+      const user = await User.findOne({ where:{ id_user:req.user.id_user } });
 
       if ( !validateDeviceInfo(user,req.body.deviceInfo) ) {
         return next(genError('UNIQUE_DEVICE_ERROR'));
@@ -271,8 +265,8 @@ module.exports = function(io) {
       const hash = await new Password(req.body.newPassword).hashPassword();
 
       await User.update({
-        columns:['password'],
-        values:[hash],
+        password:hash
+      },{
         where:{ id_user:req.user.id_user }
       });
 
@@ -303,7 +297,7 @@ module.exports = function(io) {
         return next(genError('USERS_DELETE_ACCOUNT_FATAL_ERROR'));
       }
 
-      const [ user ] = await User.select({
+      const user = await User.findOne({
         where:{ id_user:req.user.id_user }
       });
 
@@ -327,8 +321,7 @@ module.exports = function(io) {
       const friends = await Friend.getFriendsForUserWithID(req.user.id_user);
 
       await Promise.all([
-        User.deleteMultiple({
-          confirm:true,
+        User.destroy({
           where:{ id_user:req.user.id_user }
         }),
         ...friends.map(friend => io.emitOrSaveOperation(

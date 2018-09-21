@@ -20,15 +20,14 @@ const emitOrSaveOperation = (io,User,Operation) => async(userID,operationName,da
     }
   
     if ( !user ) {
-      [ user ] = await User.select({
-        columns:['id_user','online'],
-        limit:1,
+      user = await User.findOne({
+        attributes:['id_user','online'],
         where:{ id_user:userID }
       });
     }
   
     if ( user.online ) {
-      await Operation.insert({
+      await Operation.create({
         name:operationName,
         data:JSON.stringify(data),
         id_user:user.id_user
@@ -39,7 +38,8 @@ const emitOrSaveOperation = (io,User,Operation) => async(userID,operationName,da
   
     return { emited:false,saved:false,user };
   } catch(e) {
-    global.Logger.log(e,'socket_io');
+    await global.Logger.log(e,'socket_io:emit_or_save');
+
     return { emited:false,saved:false,user:{} };
   }
 }

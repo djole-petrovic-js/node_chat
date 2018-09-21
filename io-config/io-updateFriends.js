@@ -8,7 +8,7 @@ const updateFriends = (io,Friend) => async(friend1,friend2) => {
       io.users[friend2].friends = await Friend.getFriendsForUserWithID(friend2);
     }
   } catch(e) {
-    global.Logger.log(e,'socket_io');
+    global.Logger.log(e,'socket_io:updateFriends');
   }
 }
 

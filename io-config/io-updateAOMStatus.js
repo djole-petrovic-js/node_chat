@@ -21,7 +21,7 @@ const updateAOMStatus = (io,Friend) => async(userID,value) => {
       }
     }
   } catch(e) {
-    global.Logger.log(e,'socket_io');
+    global.Logger.log(e,'socket_io:updateAOMStatus');
   }
 }
 

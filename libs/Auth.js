@@ -1,4 +1,4 @@
-const UserModel = require('../models/userModel');
+const { db:{ User } } = require('../Models/Models');
 const genError  = require('../utils/generateError');
 const validateDeviceInfo = require('../utils/validateDeviceInfo');
 const Password = require('../libs/password');
@@ -6,9 +6,8 @@ const Password = require('../libs/password');
 class Auth {
   static async loginWithEmailPassword(body) {
     try {
-      const [ user ] = await new UserModel().select({
-        limit:1,
-        columns:[
+      const user = await User.findOne({
+        attributes:[
           'id_user','email',
           'username','password',
           'account_activated',
@@ -28,7 +27,7 @@ class Auth {
         return { success:false,error:genError('EMAIL_PASSWORD_INCORRECT') }
       }
   
-      if ( user.account_activated !== 1 ) {
+      if ( !user.account_activated ) {
         return { success:false, error:genError('ACCOUNT_NOT_ACTIVATED') }
       }
 
@@ -56,16 +55,13 @@ class Auth {
 
   static async loginWithPin(body) {
     try {
-      const User = new UserModel();
-
-      const [ user ] = await User.select({
-        columns:[
+      const user = await User.findOne({
+        attributes:[
           'id_user','username',
           'unique_device','device_uuid',
           'device_serial','device_manufacturer',
           'pin_login_enabled','pin'
         ],
-        limit:1,
         where:{
           device_uuid:body.deviceInfo.uuid,
           device_serial:body.deviceInfo.serial,

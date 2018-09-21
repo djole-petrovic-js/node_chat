@@ -1,12 +1,10 @@
-const UserModel = require('../../models/userModel');
+const { db:{ User } } = require('../../Models/Models');
 
 const checkIfUsernameOrEmailExists = async({ username,email }) => {
   try {
-    const User = new UserModel()
-
-    const [ [ resultUsername ],[ resultEmail ] ] = await Promise.all([
-      User.select({ limit:1, where:{ username } }),
-      User.select({ limit:1, where:{ email } })
+    const [ resultUsername,resultEmail ] = await Promise.all([
+      User.findOne({ where:{ username } }),
+      User.findOne({ where:{ email } })
     ]);
 
     return {

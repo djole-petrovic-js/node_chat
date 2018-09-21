@@ -18,6 +18,7 @@ const
 
 global.Logger = Logger;
 
+require('./Models/Models');
 require('./cron/removeNotActivatedAccounts');
 require('./io-config/io-main')(io);
 
@@ -36,9 +37,8 @@ io.use(jwtAuth.authenticate({
 },ioAuth(io)));
 
 process.on('unhandledRejection',(reason) => {
-  Logger.log(reason,'unhandled_error').then(() => {
-    process.exit();
-  });
+  console.log(reason);
+  process.exit();
 });
 
 app.enable('trust proxy');

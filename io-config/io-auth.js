@@ -1,12 +1,11 @@
-const UserModel = require('../models/userModel');
-const User = new UserModel();
+const { db:{ User } } = require('../Models/Models');
 
 const ioAuth = (io) => async(payload,done) => {
   try {
-    const [ user ] = await User.select({
-      limit:1,
-      columns:[
-        'id_user as id','email','username',
+    const user = await User.findOne({
+      raw:true,
+      attributes:[
+        ['id_user','id'],'email','username',
         'allow_offline_messages'
       ],
       where:{ id_user:payload.id }

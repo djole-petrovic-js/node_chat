@@ -1,14 +1,7 @@
 module.exports = (io) => {
-  const 
-    UserModel      = require('../models/userModel'),
-    FriendsModel   = require('../models/friendsModel'),
-    MessagesModel  = require('../models/messagesModel'),
-    OperationModel = require('../models/operationModel'),
-    User           = new UserModel(),
-    Friend         = new FriendsModel(),
-    Operation      = new OperationModel(),
-    Messages       = new MessagesModel(),
-    users          = {};
+  const { db:{ User,Friend,Operation,Message } } = require('../Models/Models');
+
+  const users = {};
 
   io.users = users;
   io.updateFriends = require('./io-updateFriends')(io,Friend);
@@ -26,23 +19,21 @@ module.exports = (io) => {
 
     socket.emit('success', { message:'success logged in!' });
 
-    const [ userFriends,[ user ] ] = await Promise.all([
+    const [ userFriends,user ] = await Promise.all([
       Friend.getFriendsForUserWithID(userID),
-      User.select({
-        columns:['id_user','online','username'],
+      User.findOne({
+        attributes:['id_user','online','username'],
         where:{ id_user:userID },
-        limit:1
       }),
     ]);
 
     users[userID] = {
       socketID:socket.id,
       friends:userFriends,
-      user,
+      user:user.get(),
       socket,
       tempOperations:[]
     }
-
     io.socketLockdown.unlock(userID,'connect');
 
     socket.on('new:message',async({ userID,message }) => {
@@ -65,7 +56,7 @@ module.exports = (io) => {
             io.to(users[senderID].socketID).emit('message:user-not-online');
 
             if ( friend.allow_offline_messages ) {
-              await Messages.insert({
+              await Message.create({
                 id_sending:senderID,
                 id_receiving:userID,
                 message
@@ -77,7 +68,7 @@ module.exports = (io) => {
         }
       } catch(e) {
         io.socketLockdown.unlock(userID,'connect');
-        global.Logger.log(e,'socket_io');
+        global.Logger.log(e,'socket_io:main');
       }
     });
 
@@ -87,7 +78,7 @@ module.exports = (io) => {
 
         if ( users[userID].tempOperations.length > 0 ) {
           await Promise.all(users[userID].tempOperations.map(op => {
-            return Operation.insert({
+            return Operation.create({
               name:op.operationName,
               data:JSON.stringify(op.data),
               id_user:op.id_user
@@ -100,7 +91,7 @@ module.exports = (io) => {
         io.socketLockdown.unlock(userID,'disconnect');
       } catch(e) {
         io.socketLockdown.unlock(userID,'disconnect');
-        global.Logger.log(e,'socket_io');
+        global.Logger.log(e,'socket_io:main');
       }
     });
   });

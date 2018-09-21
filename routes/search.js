@@ -2,9 +2,10 @@ const
   passport = require('passport'),
   router   = require('express').Router();
 
-const UserModel = require('../models/userModel');
-const genError  = require('../utils/generateError');
-const Logger    = require('../libs/Logger');
+const genError = require('../utils/generateError');
+const Logger = require('../libs/Logger');
+
+const { sequelize } = require('../Models/Models');
 
 router.post('/',passport.authenticate('jwt',{ session:false }),async(req,res,next) => {
   const [{ q },{ id_user }] = [ req.body,req.user ];
@@ -14,23 +15,24 @@ router.post('/',passport.authenticate('jwt',{ session:false }),async(req,res,nex
   }
 
   try {
-    const User = new UserModel();
-
     const sql = `
       SELECT id_user,username
-      FROM user
-      WHERE username LIKE ? AND id_user <> ?
+      FROM User
+      WHERE username LIKE :search AND id_user <> :id_user
       AND id_user NOT IN (
         SELECT id_friend_with
-        FROM friend
-        WHERE id_friend_is = ?
+        FROM Friend
+        WHERE id_friend_is = :id_user
       )
     `;
 
-    const result = await User.executeCustomQuery(
-      sql,
-      [`%${ q }%`,id_user,id_user]
-    );
+    const result = await sequelize.query(sql,{
+      replacements:{
+        search:'%' + q + '%',
+        id_user
+      },
+      type:sequelize.QueryTypes.SELECT
+    });
 
     return res.json({ result });
   } catch(e) {

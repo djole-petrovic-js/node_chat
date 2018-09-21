@@ -2,7 +2,6 @@ module.exports = (io) => {
   const 
     express    = require('express'),
     passport   = require('passport'),
-    UserModel  = require('../models/userModel'),
     jwt        = require('jsonwebtoken'),
     jwtOptions = require('../utils/passport/passport-jwt-config'),
     genError   = require('../utils/generateError'),
@@ -15,6 +14,8 @@ module.exports = (io) => {
 
   const validateDeviceInfo = require('../utils/validateDeviceInfo');
   const deviceInfoRules = require('../config/deviceInfo');
+
+  const { db:{ User } } = require('../Models/Models');
 
   const emailPasswordSchema = {
     type:'object',
@@ -72,22 +73,15 @@ module.exports = (io) => {
       const refreshToken = randtoken.uid(255);
       const date = moment().toISOString();
 
-      await new UserModel().update({
-        columns:[
-          'online',
-          'refresh_token',
-          'refresh_token_date',
-          'refresh_device_info_json',
-        ],
-        values:[
-          1,
-          refreshToken,
-          date,
-          JSON.stringify(req.body.deviceInfo),
-        ],
+      await User.update({
+        online:1,
+        refresh_token:refreshToken,
+        refresh_token_date:date,
+        refresh_device_info_json:JSON.stringify(req.body.deviceInfo)
+      },{
         where:{ id_user:data.user.id_user }
       });
-      
+
       await io.updateOnlineStatus(data.user.id_user,1);
 
       return res.json({
@@ -140,9 +134,7 @@ module.exports = (io) => {
         return next(genError('LOGIN_FATAL_ERROR'));
       }
 
-      const User = new UserModel();
-
-      const [ user ] = await User.select({
+      const user = await User.findOne({
         where:{ refresh_token:req.body.refreshToken }
       });
 
@@ -170,15 +162,10 @@ module.exports = (io) => {
         refreshToken = randtoken.uid(255);
 
         await User.update({
-          columns:[
-            'refresh_token','refresh_token_date',
-            'refresh_device_info_json'
-          ],
-          values:[
-            refreshToken,
-            moment().toISOString(),
-            JSON.stringify(userDeviceInfo)
-          ],
+          refresh_token:refreshToken,
+          refresh_token_date:moment().toISOString(),
+          refresh_device_info_json:JSON.stringify(userDeviceInfo)
+        },{
           where:{ id_user:user.id_user }
         });
       }
@@ -204,16 +191,12 @@ module.exports = (io) => {
 
   router.post('/logout',passport.authenticate('jwt',{ session:false }),async(req,res,next) => {
     try {
-      const User = new UserModel();
-
       await User.update({
-        columns:[
-          'online',
-          'refresh_token',
-          'refresh_token_date',
-          'refresh_device_info_json',
-        ],
-        values:[0,null,null,null],
+        online:0,
+        refresh_token:null,
+        refresh_token_date:null,
+        refresh_device_info_json:null
+      },{
         where:{ id_user:req.user.id_user }
       });
 
@@ -232,9 +215,9 @@ module.exports = (io) => {
 
   router.post('/change_login_status',passport.authenticate('jwt',{ session:false }),async(req,res,next) => {
     try {
-      await new UserModel().update({
-        columns:['online'],
-        values:[req.body.status],
+      await User.update({
+        online:req.body.status
+      },{
         where:{ id_user:req.user.id_user }
       });
 

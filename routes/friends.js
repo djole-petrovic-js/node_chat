@@ -1,25 +1,18 @@
 module.exports = function(io) {
   const 
-    express  = require('express'),
     passport = require('passport'),
     Logger   = require('../libs/Logger'),
     genError = require('../utils/generateError'),
     Types    = require('../libs/types'),
-    router   = express.Router();
+    router   = require('express').Router();
 
-  const FriendsModel = require('../models/friendsModel');
-  const NotificationsModel = require('../models/notificationsModel');
-  const UserModel = require('../models/userModel');
-
-  const Notifications = new NotificationsModel();
-  const Friends = new FriendsModel();
-  const User = new UserModel();
+  const { sequelize,db:{ Notification,Friend,User } } = require('../Models/Models');
 
   router.use(passport.authenticate('jwt',{ session:false }));
 
   router.get('/',async(req,res,next) => {
     try {
-      const friends = await Friends.getFriendsForUserWithID(req.user.id_user);
+      const friends = await Friend.getFriendsForUserWithID(req.user.id_user);
 
       return res.json(friends);
     } catch(e) {
@@ -32,16 +25,17 @@ module.exports = function(io) {
 
   router.get('/pending_requests',async(req,res,next) => {
     try {
-      const pendingRequests = await Friends.select({
-        columns:['id_user','username'],
-        alias:'f',
-        innerJoin:{
-          user:['u','f.id_friend_with','u.id_user']
-        },
-        where:{
-          id_friend_is:req.user.id_user,
-          confirmed:0
-        }
+      const sql = `
+        SELECT id_user,username
+        FROM Friend f
+        INNER JOIN User u
+        ON f.id_friend_with = u.id_user
+        WHERE id_friend_is = ? AND confirmed = 0
+      `;
+
+      const pendingRequests = await sequelize.query(sql,{
+        replacements:[req.user.id_user],
+        type: sequelize.QueryTypes.SELECT
       });
 
       return res.json(pendingRequests);
@@ -60,8 +54,7 @@ module.exports = function(io) {
         return next(genError('PENDING_FATAL_ERROR'));
       }
 
-      await Friends.deleteMultiple({
-        confirm:true,
+      await Friend.destroy({
         where:{
           id_friend_is:req.user.id_user,
           id_friend_with:req.body.id_user,
@@ -84,16 +77,11 @@ module.exports = function(io) {
       const { IdFriendToRemove } = req.body;
 
       if ( !IdUserRemoving || !IdFriendToRemove ) {
-        const error = new Error();
-        error.message = 'No friends specified';
-        error.errorCode = 'FRIENDS_MISSING_DATA';
-
-        return next(error); 
+        return next(genError('FRIENDS_MISSING_DATA'));
       }
 
       // check if user is actualy a friend with another user
-      const [ userInFriendsList ] = await Friends.select({
-        limit:1,
+      const userInFriendsList = await Friend.findOne({
         where:{
           id_friend_is:IdUserRemoving,
           id_friend_with:IdFriendToRemove,
@@ -105,18 +93,16 @@ module.exports = function(io) {
         return next(genError('FRIENDS_FATAL_ERROR'));
       }
 
-      const q1 = Friends.deleteMultiple({
-        confirm:true,
+      const q1 = Friend.destroy({
         where:{
           id_friend_is:IdUserRemoving,
           id_friend_with:IdFriendToRemove
         }
       })
 
-      const q2 = Friends.deleteMultiple({
-        confirm:true,
+      const q2 = Friend.destroy({
         where:{
-          id_friend_is:IdFriendToRemove ,
+          id_friend_is:IdFriendToRemove,
           id_friend_with:IdUserRemoving
         }
       });
@@ -150,7 +136,7 @@ module.exports = function(io) {
       }
 
       //Check if user has already added this user...
-      const [ friend ] = await Friends.select({
+      const friend = await Friend.findOne({
         where:{ id_friend_is:idFrom, id_friend_with:idTo }
       });
 
@@ -163,7 +149,7 @@ module.exports = function(io) {
       }
 
       // Check if user has already been added by another user...
-      const [ friendAlreadyAddedYou ] = await Friends.select({
+      const friendAlreadyAddedYou = await Friend.findOne({
         where:{ id_friend_is:idTo, id_friend_with:idFrom }
       });
 
@@ -174,19 +160,18 @@ module.exports = function(io) {
           errorCode:'FRIENDS_USER_ALREADY_ADDED'
         })
       }
-
-      const [ [ userFriend ],resultNotification ] = await Promise.all([
-        User.select({
-          columns:['username'],
-          limit:1,
-          where:{ id_user:idFrom } 
+      
+      const [ userFriend,resultNotification ] = await Promise.all([
+        User.findOne({
+          attributes:['username'],
+          where:{ id_user:idFrom }
         }),
-        Notifications.insert({
+        Notification.create({
           id_notification_type:1,
           notification_from:idFrom,
           notification_to:idTo
         }),
-        Friends.insertNewFriend({
+        Friend.insertNewFriend({
           id_friend_is:idFrom,
           id_friend_with:idTo,
           confirmed:0
@@ -194,7 +179,7 @@ module.exports = function(io) {
       ]);
 
       const notificationToSend = {
-        id_notification:resultNotification.insertId,
+        id_notification:resultNotification.id_notification,
         id_notification_type:1,
         id_user:idFrom,
         username:userFriend.username
@@ -223,7 +208,7 @@ module.exports = function(io) {
     const { id:idUserToAdd } = req.body;
 
     try {
-      const [ friend ] = await Friends.select({
+      const friend = await Friend.findOne({
         where:{
           id_friend_is:idUserConfirming,
           id_friend_with:idUserToAdd,
@@ -248,7 +233,7 @@ module.exports = function(io) {
     // check if another user has actually added this friend
     // friend request cancel could happend!
     try {
-      const [ user ] = await Friends.select({
+      const user = await Friend.findOne({
         where:{
           id_friend_is:idUserToAdd,
           id_friend_with:idUserConfirming,
@@ -266,36 +251,35 @@ module.exports = function(io) {
 
     try {
       const [ notificationResult ] = await Promise.all([
-        Notifications.insert({
+        Notification.create({
           id_notification_type:2,
           notification_from:idUserConfirming,
           notification_to:idUserToAdd
         }),
-        Friends.insertNewFriend({
+        Friend.insertNewFriend({
           id_friend_is:idUserConfirming,
           id_friend_with:idUserToAdd,
           confirmed:0
-        })
+        })  
       ]);
 
-      await Friends.confirmFriends({
+      await Friend.confirmFriends({
         userIDs:[idUserConfirming,idUserToAdd]
       });
 
       await io.updateFriends(idUserConfirming,idUserToAdd);
 
-      const [ friend ] = await Friends.select({
-        limit:1,
-        columns:['id_user','username','online'],
-        alias:'f',
-        innerJoin:{
-          user:['u','f.id_friend_with','u.id_user']
-        },
-        where:{
-          id_friend_is:idUserConfirming,
-          id_friend_with:idUserToAdd,
-          confirmed:1,
-        }
+      const sqlFriend1 = `
+        SELECT id_user, username, online
+        FROM Friend f
+        INNER JOIN User u
+        ON f.id_friend_with = u.id_user
+        WHERE id_friend_is = ? AND id_friend_with = ? AND confirmed = 1
+      `;
+
+      const [ friend ] = await sequelize.query(sqlFriend1,{
+        replacements:[idUserConfirming,idUserToAdd],
+        type: sequelize.QueryTypes.SELECT
       });
 
       await io.emitOrSaveOperation(
@@ -304,18 +288,17 @@ module.exports = function(io) {
         { friend }
       );
 
-      const [ friend2 ] = await Friends.select({
-        limit:1,
-        columns:['id_user','username','online'],
-        alias:'f',
-        innerJoin:{
-          user:['u','f.id_friend_with','u.id_user']
-        },
-        where:{
-          id_friend_is:idUserToAdd,
-          id_friend_with:idUserConfirming,
-          confirmed:1,
-        }
+      const sqlFriend2 = `
+        SELECT id_user, username, online
+        FROM Friend f
+        INNER JOIN User u
+        ON f.id_friend_with = u.id_user
+        WHERE id_friend_is = ? AND id_friend_with = ? and confirmed = 1
+      `;
+
+      const [ friend2 ] = await sequelize.query(sqlFriend2,{
+        replacements:[idUserToAdd,idUserConfirming],
+        type: sequelize.QueryTypes.SELECT
       });
 
       await io.emitOrSaveOperation(
@@ -324,13 +307,17 @@ module.exports = function(io) {
         { friend:friend2 }
       );
 
-      const [ newNotification ] = await Notifications.select({
-        columns:['id_notification','id_notification_type','username','id_user'],
-        alias:'n',
-        innerJoin:{
-          user:['u','n.notification_from','u.id_user']
-        },
-        where:{ id_notification:notificationResult.insertId }
+      const sqlNotification = `
+        SELECT id_notification, id_notification_type, username, id_user
+        FROM Notification n
+        INNER JOIN User u
+        ON n.notification_from = u.id_user
+        WHERE id_notification = ?
+      `;
+
+      const [ newNotification ] = await sequelize.query(sqlNotification,{
+        replacements:[notificationResult.id_notification],
+        type: sequelize.QueryTypes.SELECT
       });
 
       await io.emitOrSaveOperation(

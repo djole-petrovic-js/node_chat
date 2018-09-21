@@ -1,8 +1,6 @@
 const 
   express       = require('express'),
   uuidV4        = require('uuid/v4'),
-  UserModel     = require('../models/userModel'),
-  TokenModel    = require('../models/tokenModel'),
   genError      = require('../utils/generateError'),
   Logger        = require('../libs/Logger'),
   Password      = require('../libs/password'),
@@ -13,8 +11,8 @@ const
 const sendEmail = require('../utils/sendEmail');
 const checkIfUsernameOrEmailExists = require('../utils/register/checkIfUsernameOrEmailExists');
 const deviceInfoRules = require('../config/deviceInfo');
-const User = new UserModel();
-const Token = new TokenModel();
+
+const { sequelize,db:{ User,Token } } = require('../Models/Models');
 
 router.get('/verify_token',async(req,res) => {
   try {
@@ -30,14 +28,17 @@ router.get('/verify_token',async(req,res) => {
   
     const sql = `
       SELECT t.id_user,token,account_activated
-      FROM token t
-      INNER JOIN user u
+      FROM Token t
+      INNER JOIN User u
       ON u.id_user = t.id_user
       WHERE token = ? AND DATEDIFF(now(),token_date) < 7
       LIMIT 1
     `;
 
-    const [ userToken ] = await Token.executeCustomQuery(sql,[token]);
+    const [ userToken ] = await sequelize.query(sql,{
+      replacements:[token],
+      type: sequelize.QueryTypes.SELECT
+    });
 
     if ( !userToken ) {
       return res.send(`
@@ -56,10 +57,10 @@ router.get('/verify_token',async(req,res) => {
     }
 
     await User.update({
-      columns:['account_activated'],
-      values:[1],
+      account_activated:1
+    },{
       where:{ id_user:userToken.id_user }
-    });
+    })
 
     return res.send(`
       <h1>No History Chat</h1>
@@ -164,7 +165,7 @@ router.post('/',async (req,res,next) => {
       return res.json(info);
     }
 
-    const result = await User.insertNewUser({
+    const result = await User.create({
       username:req.body.username,
       password:req.body.password,
       email:req.body.email,
@@ -175,7 +176,7 @@ router.post('/',async (req,res,next) => {
 
     const token = uuidV4();
 
-    await Token.insertOrUpdateToken({ userID:result.insertId,token });
+    await Token.insertOrUpdateToken({ userID:result.id_user,token });
 
     try {
       await sendEmail({
@@ -222,7 +223,7 @@ router.post('/resend_confirmation_email',async(req,res,next) => {
       return next(genError('REGISTER_DATA_NOT_VALID'));
     }
 
-    const [ user ] = await User.select({
+    const user = await User.findOne({
       where:{ email:req.body.email }
     });
 

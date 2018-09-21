@@ -5,20 +5,22 @@ module.exports = function(io) {
     genError = require('../utils/generateError'),
     router   = require('express').Router();
 
-  const NotificationsModel = require('../models/notificationsModel');
-  const Notification = new NotificationsModel();
-
   router.use(passport.authenticate('jwt',{ session:false }));
+
+  const { sequelize,db:{ Notification } } = require('../Models/Models');
 
   router.get('/',async(req,res,next) => {
     try {
-      const notifications = await Notification.select({
-        columns:['id_notification','id_notification_type','username','id_user'],
-        alias:'n',
-        innerJoin:{
-          user:['u','n.notification_from','u.id_user']
-        },
-        where:{ notification_to:req.user.id_user }
+      const sql = `
+        SELECT id_notification,id_notification_type,username,id_user
+        FROM Notification n
+        INNER JOIN User u
+        ON n.notification_from = u.id_user
+        WHERE notification_to = ?
+      `;
+      const notifications = await sequelize.query(sql,{
+        replacements:[req.user.id_user],
+        type: sequelize.QueryTypes.SELECT
       });
 
       res.json(notifications);
@@ -41,7 +43,7 @@ module.exports = function(io) {
         });
       }
 
-      await Notification.deleteOne({
+      await Notification.destroy({
         where:{ id_notification:notificationID }
       });
 
@@ -55,8 +57,7 @@ module.exports = function(io) {
 
   router.post('/dismiss_all',async(req,res,next) => {
     try {
-      await Notification.deleteMultiple({
-        confirm:true,
+      await Notification.destroy({
         where:{ notification_to:req.user.id_user }
       });
 
