@@ -12,7 +12,7 @@ const task = cron.schedule('0 0,12 * * *',async() => {
     const sql = `
       SELECT id_user,email FROM User
       WHERE account_activated = 0
-      AND DATEDIFF(now(),date_created) = 0
+      AND DATEDIFF(now(),date_created) > 6
     `;  
 
     const usersToDelete = await sequelize.query(sql,{
