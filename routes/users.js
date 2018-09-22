@@ -19,10 +19,9 @@ module.exports = function(io) {
     try {
       const user = await User.findOne({
         attributes:[
-          'username','email',
-          'date_created','allow_offline_messages',
-          'unique_device','pin_login_enabled',
-          'pin'
+          'username','date_created',
+          'allow_offline_messages','pin',
+          'unique_device','pin_login_enabled'
         ],
         where:{ id_user:req.user.id_user },
       });

@@ -14,7 +14,7 @@ const initUserModel = (sequelize,DataTypes) => {
       allowEmpty:false
     },
     email:{
-      type:DataTypes.STRING(50),
+      type:DataTypes.STRING(255),
       unique:true,
       allowNull:false,
       allowEmpty:false

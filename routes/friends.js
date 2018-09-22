@@ -6,7 +6,7 @@ module.exports = function(io) {
     Types    = require('../libs/types'),
     router   = require('express').Router();
 
-  const { sequelize,db:{ Notification,Friend,User } } = require('../Models/Models');
+  const { sequelize,db:{ Notification,Friend,User,Operation } } = require('../Models/Models');
 
   router.use(passport.authenticate('jwt',{ session:false }));
 
@@ -54,13 +54,45 @@ module.exports = function(io) {
         return next(genError('PENDING_FATAL_ERROR'));
       }
 
-      await Friend.destroy({
+      const friend = await Friend.findOne({
         where:{
           id_friend_is:req.user.id_user,
           id_friend_with:req.body.id_user,
           confirmed:0
         }
       });
+
+      if ( friend ) {
+        await friend.destroy();
+      } else {
+        return res.json({ success:true });
+      }
+
+      const notification = await Notification.findOne({
+        where:{
+          id_notification_type:1,
+          notification_from:req.user.id_user,
+          notification_to:req.body.id_user
+        }
+      });
+
+      if ( notification ) {
+        await notification.destroy();
+      }
+
+      const operation = await Operation.findOne({
+        where:{
+          name:'notification:new-notification',
+          id_user:req.body.id_user,
+          data:{
+            [sequelize.Op.like]:`%"id_user":${req.user.id_user}%`
+          }
+        }
+      });
+
+      if ( operation ) {
+        await operation.destroy();
+      }
 
       return res.json({ success:true });
     } catch(e) {
@@ -79,7 +111,6 @@ module.exports = function(io) {
       if ( !IdUserRemoving || !IdFriendToRemove ) {
         return next(genError('FRIENDS_MISSING_DATA'));
       }
-
       // check if user is actualy a friend with another user
       const userInFriendsList = await Friend.findOne({
         where:{
@@ -93,21 +124,21 @@ module.exports = function(io) {
         return next(genError('FRIENDS_FATAL_ERROR'));
       }
 
-      const q1 = Friend.destroy({
-        where:{
-          id_friend_is:IdUserRemoving,
-          id_friend_with:IdFriendToRemove
-        }
-      })
+      await Promise.all([
+        Friend.destroy({
+          where:{
+            id_friend_is:IdUserRemoving,
+            id_friend_with:IdFriendToRemove
+          }
+        }),
+        Friend.destroy({
+          where:{
+            id_friend_is:IdFriendToRemove,
+            id_friend_with:IdUserRemoving
+          }
+        })
+      ]);
 
-      const q2 = Friend.destroy({
-        where:{
-          id_friend_is:IdFriendToRemove,
-          id_friend_with:IdUserRemoving
-        }
-      });
-      
-      await Promise.all([q1,q2]);
       await io.updateFriends(IdUserRemoving,IdFriendToRemove);
 
       await io.emitOrSaveOperation(
@@ -134,7 +165,6 @@ module.exports = function(io) {
       if ( !(idFrom && idTo && Types.isInteger(idFrom) && Types.isInteger(idTo)) ) {
         return next(genError('FRIENDS_MISSING_DATA')); 
       }
-
       //Check if user has already added this user...
       const friend = await Friend.findOne({
         where:{ id_friend_is:idFrom, id_friend_with:idTo }
@@ -147,7 +177,6 @@ module.exports = function(io) {
           errorCode:'FRIENDS_ALREADY_ADDED'
         });
       }
-
       // Check if user has already been added by another user...
       const friendAlreadyAddedYou = await Friend.findOne({
         where:{ id_friend_is:idTo, id_friend_with:idFrom }

@@ -19,6 +19,7 @@ router.post('/',passport.authenticate('jwt',{ session:false }),async(req,res,nex
       SELECT id_user,username
       FROM User
       WHERE username LIKE :search AND id_user <> :id_user
+      AND account_activated = 1
       AND id_user NOT IN (
         SELECT id_friend_with
         FROM Friend

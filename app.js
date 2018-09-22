@@ -44,7 +44,11 @@ process.on('unhandledRejection',(reason) => {
 
 app.enable('trust proxy');
 app.use(helmet());
-app.use(logger('dev'));
+
+if ( process.env.ENV_MODE !== 'production' ) {
+  app.use(logger('dev'));
+}
+
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
