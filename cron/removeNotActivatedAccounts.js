@@ -5,18 +5,20 @@ const Logger = require('../libs/Logger');
  * Find all users that didnt activate their accounts
  * after seven days, and delete them.
 */
-cron.schedule('* * 0,12 * * *',async() => {
+const task = cron.schedule('0 0,12 * * *',async() => {
   try {
+    await Logger.log('Started removing expired accounts.','cron');
+
     const sql = `
-      SELECT id_user,email FROM user
+      SELECT id_user,email FROM User
       WHERE account_activated = 0
       AND DATEDIFF(now(),date_created) > 7
-    `;
+    `;  
 
     const usersToDelete = await sequelize.query(sql,{
       type: sequelize.QueryTypes.SELECT
     });
-  
+
     if ( usersToDelete.length === 0 ) return;
 
     await User.destroy({
@@ -31,4 +33,4 @@ cron.schedule('* * 0,12 * * *',async() => {
   }
 },true);
 
-module.exports = cron;
+module.exports = task;

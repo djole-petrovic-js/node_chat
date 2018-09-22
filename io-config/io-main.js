@@ -34,6 +34,7 @@ module.exports = (io) => {
       socket,
       tempOperations:[]
     }
+    
     io.socketLockdown.unlock(userID,'connect');
 
     socket.on('new:message',async({ userID,message }) => {

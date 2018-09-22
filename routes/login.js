@@ -164,7 +164,6 @@ module.exports = (io) => {
         await User.update({
           refresh_token:refreshToken,
           refresh_token_date:moment().toISOString(),
-          refresh_device_info_json:JSON.stringify(userDeviceInfo)
         },{
           where:{ id_user:user.id_user }
         });

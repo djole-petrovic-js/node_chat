@@ -7,7 +7,6 @@ const EXTENSION = '.log';
 
 class Logger {
   static async log(error,location = null) {
-    console.log(error);
     try {
       const timestamp = new Date().toLocaleString();
 

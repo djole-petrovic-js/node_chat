@@ -20,6 +20,7 @@ global.Logger = Logger;
 
 require('./Models/Models');
 require('./cron/removeNotActivatedAccounts');
+require('./cron/mysqlBackup');
 require('./io-config/io-main')(io);
 
 const 
