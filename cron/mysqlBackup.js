@@ -10,7 +10,7 @@ const moment = require('moment');
 const backupsPath = path.join(__dirname,'../','backups');
 const mysqldump = require('mysqldump');
 
-const task = cron.schedule('10 0,12 * * *',async() => {
+const task = cron.schedule('10 0 * * *',async() => {
   try {
     const backups = await fs.readdirAsync(backupsPath);
 

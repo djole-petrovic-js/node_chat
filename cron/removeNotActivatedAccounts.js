@@ -7,12 +7,12 @@ const Logger = require('../libs/Logger');
 */
 const task = cron.schedule('0 0,12 * * *',async() => {
   try {
-    await Logger.log('Started removing expired accounts.','cron');
+    await Logger.log('Started deleting expired accounts...','cron');
 
     const sql = `
       SELECT id_user,email FROM User
       WHERE account_activated = 0
-      AND DATEDIFF(now(),date_created) > 7
+      AND DATEDIFF(now(),date_created) = 0
     `;  
 
     const usersToDelete = await sequelize.query(sql,{
