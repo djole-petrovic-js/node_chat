@@ -49,6 +49,8 @@ module.exports = function(io) {
 
       return res.json({ success:true, operations });
     } catch(e) {
+      Logger.log(e,'users:get_socket_operations');
+
       return next(genError('USERS_FATAL_ERROR'));
     }
   });
@@ -66,6 +68,8 @@ module.exports = function(io) {
 
       return res.json({ success:true });
     } catch(e) {
+      Logger.log(e,'users:delete_operations');
+
       return next(genError('USERS_FATAL_ERROR'));
     }
   });

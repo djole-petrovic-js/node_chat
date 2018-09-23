@@ -7,8 +7,6 @@ const Logger = require('../libs/Logger');
 */
 const task = cron.schedule('0 0,12 * * *',async() => {
   try {
-    await Logger.log('Started deleting expired accounts...','cron');
-
     const sql = `
       SELECT id_user,email FROM User
       WHERE account_activated = 0

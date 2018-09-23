@@ -137,12 +137,10 @@ module.exports = (io) => {
       const user = await User.findOne({
         where:{ refresh_token:req.body.refreshToken }
       });
-
       // check if token exists
       if ( !user ) {
         return next(genError('LOGIN_FATAL_ERROR'));
       }
-
       // if user has unique device enabled
       // check if request comes from that device
       // else check the device user has logged in from last time
