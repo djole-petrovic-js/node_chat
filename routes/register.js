@@ -237,7 +237,7 @@ router.post('/resend_confirmation_email',async(req,res,next) => {
       return next(genError('EMAIL_PASSWORD_INCORRECT'));
     }
 
-    if ( user.account_activated === 1 ) {
+    if ( user.account_activated ) {
       return next(genError('ACCOUNT_ALREADY_ACTIVATED'));
     }
 

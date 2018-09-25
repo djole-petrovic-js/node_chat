@@ -38,7 +38,7 @@ io.use(jwtAuth.authenticate({
 },ioAuth(io)));
 
 process.on('unhandledRejection',(reason) => {
-  console.log(reason);
+  console.error(reason);
   process.exit();
 });
 

@@ -62,5 +62,6 @@ function onListening() {
   debug('Listening on ' + bind);
 
   console.log('Server started on port ' + port);
-  console.log('Execution Mode : ' + process.env.NODE_ENV);
+  console.log('Server execution Mode : ' + process.env.NODE_ENV);
+  console.log('Server start timestamp : ' + new Date().toISOString());
 }
