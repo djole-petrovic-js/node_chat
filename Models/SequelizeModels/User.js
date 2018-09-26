@@ -90,6 +90,10 @@ const initUserModel = (sequelize,DataTypes) => {
       type:DataTypes.STRING(255),
       allowNull:true,
       defaultValue:null
+    },
+    push_notifications_enabled:{
+      type:DataTypes.BOOLEAN,
+      defaultValue:1
     }
   },{
     freezeTableName:true,
