@@ -335,6 +335,18 @@ module.exports = function(io) {
         ))
       ]);
 
+      for ( const friend of friends ) {
+        if ( io.users[friend.id_user] ) {
+          const friendIndex = io.users[friend.id_user].friends.findIndex(x => {
+            return x.id_user === req.user.id_user
+          });
+
+          if ( friendIndex !== -1 ) {
+            io.users[friend.id_user].friends.splice(friendIndex,1);
+          }
+        }
+      }
+
       return res.json({ success:true });
     } catch(e) {
       Logger.log(e,'users:delete_account');

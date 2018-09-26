@@ -18,14 +18,14 @@ const emitOrSaveOperation = (io,User,Operation) => async(userID,operationName,da
   
       return { emited:true,saved:false,user:io.users[userID].user };
     }
-  
+
     if ( !user ) {
       user = await User.findOne({
         attributes:['id_user','online'],
         where:{ id_user:userID }
       });
     }
-  
+
     if ( user.online ) {
       await Operation.create({
         name:operationName,
@@ -39,6 +39,8 @@ const emitOrSaveOperation = (io,User,Operation) => async(userID,operationName,da
     return { emited:false,saved:false,user };
   } catch(e) {
     await global.Logger.log(e,'socket_io:emit_or_save');
+    await global.Logger.log('For op : ' + operationName,'socket_io:emit_or_save');
+    await global.Logger.log('For user : ' + userID,'socket_io:emit_or_save');
 
     return { emited:false,saved:false,user:{} };
   }
