@@ -42,17 +42,17 @@ router.get('/verify_token',async(req,res) => {
 
     if ( !userToken ) {
       return res.send(`
-        <h1>No History Chat</h1>
-        <h2>Account activation</h2>
-        <p>Token not found or not valid,please request another one.</p>
+        <h1 style="font-size:700%;">No History Chat</h1>
+        <h2 style="font-size:500%;">Account activation</h2>
+        <p style="font-size:500%;">Token not found or not valid,please request another one.</p>
       `);
     }
 
     if ( userToken.account_activated ) {
       return res.send(`
-        <h1>No History Chat</h1>
-        <h2>Account activation</h2>
-        <p>You have already activated your account.</p>
+        <h1 style="font-size:700%;">No History Chat</h1>
+        <h2 style="font-size:500%;">Account activation</h2>
+        <p style="font-size:500%;">You have already activated your account.</p>
       `);
     }
 
@@ -63,17 +63,17 @@ router.get('/verify_token',async(req,res) => {
     })
 
     return res.send(`
-      <h1>No History Chat</h1>
-      <h2>Account activation</h2>
-      <p>Your account is activated, you can now log in.</p>
+      <h1 style="font-size:700%;">No History Chat</h1>
+      <h2 style="font-size:500%;">Account activation</h2>
+      <p style="font-size:500%;">Your account is activated, you can now log in.</p>
     `);
   } catch(e) {
     Logger.log(e,'register:verify_token');
 
     return res.send(`
-      <h1>No History Chat</h1>
-      <h2>Account activation</h2>
-      <p>Error while verifing your token, please try again!</p>
+      <h1 style="font-size:700%;">No History Chat</h1>
+      <h2 style="font-size:500%;">Account activation</h2>
+      <p style="font-size:500%;">Error while verifing your token, please try again!</p>
     `);
   }
 });

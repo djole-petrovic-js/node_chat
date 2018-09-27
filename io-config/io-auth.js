@@ -1,6 +1,8 @@
 const { db:{ User } } = require('../Models/Models');
 
 const ioAuth = (io) => async(payload,done) => {
+  await io.socketLockdown.wait(payload.id);
+
   try {
     const user = await User.findOne({
       raw:true,
@@ -14,8 +16,6 @@ const ioAuth = (io) => async(payload,done) => {
     if ( !user ) {
       return done(new Error('User does not exist.'));
     }
-
-    await io.socketLockdown.wait(user.id);
 
     return done(null,user);
   } catch(e) {
