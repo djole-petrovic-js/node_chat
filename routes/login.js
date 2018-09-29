@@ -10,6 +10,7 @@ module.exports = (io) => {
     randtoken  = require('rand-token'),
     moment     = require('moment'),
     Auth       = require('../libs/Auth'),
+    bluebird   = require('bluebird'),
     router     = express.Router();
 
   const validateDeviceInfo = require('../utils/validateDeviceInfo');
@@ -123,15 +124,42 @@ module.exports = (io) => {
       const isValidRequest = new Validator().validate(req.body,{
         type:'object',
         additionalProperties:false,
-        required:['deviceInfo','refreshToken'],
+        required:['deviceInfo','refreshToken','token'],
         properties:{
           refreshToken:{ type:'string' },
+          token:{ type:'token' },
           deviceInfo:deviceInfoRules
         }
       });
 
       if ( !isValidRequest.valid ) {
         return next(genError('LOGIN_FATAL_ERROR'));
+      }
+
+      const verify = bluebird.promisify(jwt.verify);
+
+      try {
+        const decoded = await verify(req.body.token,jwtOptions.secretOrKey);
+        const tokenDate = moment(decoded.date);
+        const minutesExpired = moment().diff(tokenDate,'minutes');
+        let token;
+
+        if ( minutesExpired >= 14 ) {
+          token = jwt.sign(
+            { id:decoded.id,username:decoded.username,date:moment().toISOString() },
+            jwtOptions.secretOrKey ,
+            { expiresIn: '25m' }
+          );
+        }
+
+        return res.json({
+          success:true,
+          token
+        });
+      } catch(e) {
+        // it error occures, its because token validation failed (most likely expired)
+        // and process needs to move on to grant new token via refresh token
+        // so its okay to just do nothing in catch.
       }
 
       const user = await User.findOne({
@@ -226,25 +254,6 @@ module.exports = (io) => {
 
       return next(genError('LOGIN_FATAL_ERROR'));
     }
-  });
-
-
-
-  router.get('/check_login',passport.authenticate('jwt',{ session:false }),async(req,res,next) => {
-    const token = req.headers.authorization.split(' ')[1];
-
-    jwt.verify(token, jwtOptions.secretOrKey, (err, decoded) => {
-      if (err) {
-        return next(genError('LOGIN_FATAL_ERROR'));
-      }
-
-      const tokenDate = moment(decoded.date);
-
-      res.json({
-        isLoggedIn:!!req.user,
-        minutesExpired:moment().diff(tokenDate,'minutes') 
-      });
-    });
   });
 
   return router;

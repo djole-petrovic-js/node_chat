@@ -190,11 +190,7 @@ module.exports = function(io) {
         })
       }
       
-      const [ userFriend,resultNotification ] = await Promise.all([
-        User.findOne({
-          attributes:['username'],
-          where:{ id_user:idFrom }
-        }),
+      const [ resultNotification ] = await Promise.all([
         Notification.create({
           id_notification_type:1,
           notification_from:idFrom,
@@ -207,17 +203,15 @@ module.exports = function(io) {
         })
       ]);
 
-      const notificationToSend = {
-        id_notification:resultNotification.id_notification,
-        id_notification_type:1,
-        id_user:idFrom,
-        username:userFriend.username
-      };
-
       await io.emitOrSaveOperation(
         idTo,
         'notification:new-notification',
-        notificationToSend
+        {
+          id_notification:resultNotification.id_notification,
+          id_notification_type:1,
+          id_user:idFrom,
+          username:req.user.username
+        }
       );
 
       return res.send({ success:true });
