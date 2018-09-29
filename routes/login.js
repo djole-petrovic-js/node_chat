@@ -140,6 +140,32 @@ module.exports = (io) => {
 
       try {
         const decoded = await verify(req.body.token,jwtOptions.secretOrKey);
+        // verify token comes from the device user owns
+        const user = await User.findOne({
+          raw:true,
+          attributes:[
+            'id_user',
+            'device_uuid',
+            'device_serial',
+            'device_manufacturer',
+            'unique_device',
+            'refresh_device_info_json'
+          ],
+          where:{ id_user:decoded.id }
+        });
+
+        if ( !user ) {
+          return next(genError('LOGIN_FATAL_ERROR'));
+        }
+
+        const userDeviceInfo = user.unique_device
+          ? user
+          : JSON.parse(user.refresh_device_info_json);
+
+        if ( !validateDeviceInfo(userDeviceInfo,req.body.deviceInfo) ) {
+          return next(genError('LOGIN_FATAL_ERROR'));
+        }
+
         const tokenDate = moment(decoded.date);
         const minutesExpired = moment().diff(tokenDate,'minutes');
         let token;
@@ -157,6 +183,7 @@ module.exports = (io) => {
           token
         });
       } catch(e) {
+        console.log(e);
         // it error occures, its because token validation failed (most likely expired)
         // and process needs to move on to grant new token via refresh token
         // so its okay to just do nothing in catch.
@@ -255,6 +282,13 @@ module.exports = (io) => {
       return next(genError('LOGIN_FATAL_ERROR'));
     }
   });
+
+
+
+  router.get('/heartbeat',(req,res) => {
+    res.status(200).json({ success:true });
+  });
+
 
   return router;
 }
