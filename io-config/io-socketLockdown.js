@@ -13,6 +13,10 @@ class SocketEventsLockdown {
       // just resolve the promise.
       const checkForCompletion = () => {
         try {
+          if ( !this.lockedUserSockets[userID] ) {
+            return resolve();
+          }
+
           if ( this.lockedUserSockets[userID].connect && this.lockedUserSockets[userID].disconnect ) {
             delete this.lockedUserSockets[userID];
             resolve();

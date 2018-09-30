@@ -68,7 +68,6 @@ module.exports = (io) => {
           io.to(users[senderID].socketID).emit('message:not-in-friends-list');
         }
       } catch(e) {
-        io.socketLockdown.unlock(userID,'connect');
         global.Logger.log(e,'socket_io:main');
       }
     });
@@ -88,11 +87,10 @@ module.exports = (io) => {
         }
 
         delete users[userID];
-
-        io.socketLockdown.unlock(userID,'disconnect');
       } catch(e) {
-        io.socketLockdown.unlock(userID,'disconnect');
         global.Logger.log(e,'socket_io:main');
+      } finally {
+        io.socketLockdown.unlock(userID,'disconnect');
       }
     });
   });

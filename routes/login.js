@@ -183,7 +183,6 @@ module.exports = (io) => {
           token
         });
       } catch(e) {
-        console.log(e);
         // it error occures, its because token validation failed (most likely expired)
         // and process needs to move on to grant new token via refresh token
         // so its okay to just do nothing in catch.
