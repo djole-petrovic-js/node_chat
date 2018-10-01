@@ -94,6 +94,16 @@ const initUserModel = (sequelize,DataTypes) => {
     push_notifications_enabled:{
       type:DataTypes.BOOLEAN,
       defaultValue:1
+    },
+    socket_io_token:{
+      type:DataTypes.STRING(255),
+      allowNull:true,
+      defaultValue:null
+    },
+    socket_io_token_date:{
+      type:DataTypes.STRING(30),
+      allowNull:true,
+      defaultValue:null
     }
   },{
     freezeTableName:true,

@@ -10,9 +10,7 @@ const
   passport    = require('passport'),
   cors        = require('cors'),
   helmet      = require('helmet'),
-  jwtAuth     = require('socketio-jwt-auth'),
   ioAuth      = require('./io-config/io-auth'),
-  jwtConfig   = require('./utils/passport/passport-jwt-config'),
   Logger      = require('./libs/Logger'),
   app         = express();
 
@@ -23,6 +21,8 @@ require('./cron/removeNotActivatedAccounts');
 require('./cron/mysqlBackup');
 require('./io-config/io-main')(io);
 
+io.use(ioAuth(io));
+
 const 
   register      = require('./routes/register'),
   login         = require('./routes/login')(io),
@@ -31,11 +31,6 @@ const
   users         = require('./routes/users')(io),
   notifications = require('./routes/notifications')(io),
   friends       = require('./routes/friends')(io);
-
-io.use(jwtAuth.authenticate({
-  secret: jwtConfig.secretOrKey,
-  algorithm: 'HS256',
-},ioAuth(io)));
 
 process.on('unhandledRejection',(reason) => {
   console.error(reason);

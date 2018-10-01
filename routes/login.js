@@ -72,13 +72,16 @@ module.exports = (io) => {
       }
 
       const refreshToken = randtoken.uid(255);
+      const socketIoToken = randtoken.uid(255);
       const date = moment().toISOString();
 
       await User.update({
         online:1,
         refresh_token:refreshToken,
         refresh_token_date:date,
-        refresh_device_info_json:JSON.stringify(req.body.deviceInfo)
+        refresh_device_info_json:JSON.stringify(req.body.deviceInfo),
+        socket_io_token:socketIoToken,
+        socket_io_token_date:date
       },{
         where:{ id_user:data.user.id_user }
       });
@@ -88,6 +91,7 @@ module.exports = (io) => {
       return res.json({
         success:true,
         refreshToken,
+        socketIoToken,
         token:jwt.sign(
           { id:data.user.id_user,username:data.user.username, date },
           jwtOptions.secretOrKey ,
@@ -246,7 +250,9 @@ module.exports = (io) => {
         online:0,
         refresh_token:null,
         refresh_token_date:null,
-        refresh_device_info_json:null
+        refresh_device_info_json:null,
+        socket_io_token:null,
+        socket_io_token_date:null
       },{
         where:{ id_user:req.user.id_user }
       });

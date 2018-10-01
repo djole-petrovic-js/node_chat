@@ -19,6 +19,10 @@ module.exports = (io) => {
 
     socket.emit('success', { message:'success logged in!' });
 
+    if ( socket.request.user.newToken ) {
+      socket.emit('new_token',{ token:socket.request.user.newToken });
+    }
+
     const [ userFriends,user ] = await Promise.all([
       Friend.getFriendsForUserWithID(userID),
       User.findOne({
