@@ -40,6 +40,29 @@ module.exports = function(io) {
 
 
 
+  router.post('/set_fcm_token',async(req,res,next) => {
+    try {
+      const token = req.body.token;
+
+      if ( !token ) {
+        return next(genError('USERS_FATAL_ERROR'));
+      }
+
+      await User.update({
+        push_registration_token:token
+      },{
+        where:{ id_user:req.user.id_user }
+      });
+
+      return res.json({ success:true });
+    } catch(e) {
+      Logger.log(e,'users:set_fcm_token');
+
+      return next(genError('USERS_FATAL_ERROR'));
+    }
+  });
+
+
 
   router.get('/get_socket_operations',async(req,res,next) => {
     try {

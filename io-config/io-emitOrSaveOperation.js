@@ -21,7 +21,10 @@ const emitOrSaveOperation = (io,User,Operation) => async(userID,operationName,da
 
     if ( !user ) {
       user = await User.findOne({
-        attributes:['id_user','online'],
+        attributes:[
+          'id_user','online','push_registration_token',
+          'push_notifications_enabled'
+        ],
         where:{ id_user:userID }
       });
     }
