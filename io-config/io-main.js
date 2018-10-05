@@ -13,8 +13,6 @@ module.exports = (io) => {
   io.on('connection',async(socket) => {
     const userID = socket.request.user.id;
 
-    console.log(socket.request.user);
-
     await io.socketLockdown.wait(userID);
 
     io.socketLockdown.lock(userID);
@@ -54,30 +52,35 @@ module.exports = (io) => {
         // if user is online, attempt to send him message, or save operation
         // else store it in db so he can read it when online, if enabled
         if ( friend ) {
-          const { emited,saved,user } = await io.emitOrSaveOperation(
+          const { emited,user } = await io.emitOrSaveOperation(
             userID,
             'message:new-message',
             { senderID,senderUsername,message },
           );
 
-          if ( emited || saved ) {
-            if ( user.push_notifications_enabled && user.push_registration_token ) {
-              try {
-                await FCM.send(user.push_registration_token,{
-                  data:{
-                    username:senderUsername,
-                    message
-                  }
-                },{
-                  collapseKey:socket.request.user.username,
-                });
-              } catch(e) {
-                global.Logger.log(e,'socket_io:main');
-              }
+          if ( user.push_notifications_enabled && user.push_registration_token ) {
+            try {
+              await FCM.send(user.push_registration_token,{
+                notification:{
+                  sound:'default',
+                  title:senderUsername,
+                  body:message
+                },
+                data:{
+                  username:senderUsername,
+                  message
+                }
+              },{
+                sound:'default',
+                priority:'high',
+                collapseKey:socket.request.user.username,
+              });
+            } catch(e) {
+              global.Logger.log(e,'socket_io:main');
             }
+          }
 
-            return;
-          } 
+          if ( emited ) { return; } 
 
           if ( !user.online ) {
             io.to(users[senderID].socketID).emit('message:user-not-online');
