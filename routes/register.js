@@ -12,7 +12,7 @@ const sendEmail = require('../utils/sendEmail');
 const checkIfUsernameOrEmailExists = require('../utils/register/checkIfUsernameOrEmailExists');
 const deviceInfoRules = require('../config/deviceInfo');
 
-const { sequelize,db:{ User,Token } } = require('../Models/Models');
+const { sequelize,db:{ User,Token,BannedEmail } } = require('../Models/Models');
 
 router.get('/verify_token',async(req,res) => {
   try {
@@ -150,6 +150,15 @@ router.post('/',async (req,res,next) => {
         errors:form.errors,
         errorCode:'REGISTER_DATA_NOT_VALID'
       });
+    }
+
+    // check if user email is banned
+    const isBanned = await BannedEmail.findOne({
+      where:{ banned_email:req.body.email } 
+    });
+
+    if ( isBanned ) {
+      return res.json({ errorCode:'REGISTER_EMAIL_BANNED' });
     }
 
     const info = await checkIfUsernameOrEmailExists({

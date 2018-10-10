@@ -11,7 +11,7 @@ module.exports = function(io) {
   const validateDeviceInfo = require('../utils/validateDeviceInfo');
   const deviceInfoRules = require('../config/deviceInfo');
 
-  const { db:{ Operation,User,Friend } } = require('../Models/Models');
+  const { db:{ Operation,User,Friend,BannedEmail } } = require('../Models/Models');
 
   router.use(passport.authenticate('jwt',{ session:false }));
 
@@ -140,7 +140,7 @@ module.exports = function(io) {
 
       if ( req.body.setting === 'push_notifications_enabled' ) {
         if ( io.users[req.user.id_user] ) {
-          io.users[req.user.id_user].user.allow_offline_messages = req.body.value;
+          io.users[req.user.id_user].user.push_notifications_enabled = req.body.value;
         }
       }
 
@@ -376,6 +376,8 @@ module.exports = function(io) {
           }
         }
       }
+
+      await BannedEmail.create({ banned_email:user.email });
 
       return res.json({ success:true });
     } catch(e) {
