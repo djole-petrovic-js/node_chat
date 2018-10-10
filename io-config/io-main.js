@@ -59,24 +59,27 @@ module.exports = (io) => {
           );
 
           if ( user.push_notifications_enabled && user.push_registration_token ) {
-            try {
-              await FCM.send(user.push_registration_token,{
-                notification:{
+            if ( !(user.online === 0 && user.allow_offline_messages === 0) ) {
+              try {
+                await FCM.send(user.push_registration_token,{
+                  notification:{
+                    sound:'default',
+                    title:senderUsername,
+                    body:message,
+                    tag:senderUsername
+                  },
+                  data:{
+                    username:senderUsername,
+                    message
+                  }
+                },{
                   sound:'default',
-                  title:senderUsername,
-                  body:message
-                },
-                data:{
-                  username:senderUsername,
-                  message
-                }
-              },{
-                sound:'default',
-                priority:'high',
-                collapseKey:socket.request.user.username,
-              });
-            } catch(e) {
-              global.Logger.log(e,'socket_io:main');
+                  priority:'high',
+                  collapseKey:socket.request.user.username,
+                });
+              } catch(e) {
+                global.Logger.log(e,'socket_io:main');
+              }
             }
           }
 

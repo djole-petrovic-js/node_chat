@@ -21,7 +21,8 @@ module.exports = function(io) {
         attributes:[
           'username','date_created',
           'allow_offline_messages','pin',
-          'unique_device','pin_login_enabled'
+          'unique_device','pin_login_enabled',
+          'push_notifications_enabled'
         ],
         where:{ id_user:req.user.id_user },
       });
