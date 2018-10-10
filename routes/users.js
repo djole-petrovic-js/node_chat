@@ -138,6 +138,12 @@ module.exports = function(io) {
         }
       }
 
+      if ( req.body.setting === 'push_notifications_enabled' ) {
+        if ( io.users[req.user.id_user] ) {
+          io.users[req.user.id_user].user.allow_offline_messages = req.body.value;
+        }
+      }
+
       if ( req.body.setting === 'allow_offline_messages' ) {
         await io.updateAOMstatus(req.user.id_user,req.body.value);
       }
