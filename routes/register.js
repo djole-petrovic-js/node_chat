@@ -151,7 +151,6 @@ router.post('/',async (req,res,next) => {
         errorCode:'REGISTER_DATA_NOT_VALID'
       });
     }
-
     // check if user email is banned
     const isBanned = await BannedEmail.findOne({
       where:{ banned_email:req.body.email } 

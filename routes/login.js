@@ -290,6 +290,26 @@ module.exports = (io) => {
 
 
 
+  router.post('/bundled_startup_operations',passport.authenticate('jwt',{ session:false }),async(req,res,next) => {
+    try {
+      await User.update({
+        online:req.body.status
+      },{
+        where:{ id_user:req.user.id_user }
+      });
+
+      await io.updateOnlineStatus(req.user.id_user,req.body.status);
+
+      return res.json({ success:true });
+    } catch(e) {
+      Logger.log(e,'login:bundled_startup_operations');
+
+      return next(genError('LOGIN_FATAL_ERROR'));
+    }
+  });
+
+
+
   router.get('/heartbeat',(req,res) => {
     res.status(200).json({ success:true });
   });

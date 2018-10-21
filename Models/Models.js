@@ -27,7 +27,7 @@ Object.keys(db).forEach(model => db[model].associate && db[model].associate(db))
 sequelize.sync().then(async() => {
   console.log('Sequelize successfully started.');
 }).catch(e => {
-  console.log(e);
+  console.error(e);
 })
 
 module.exports = { db,sequelize };

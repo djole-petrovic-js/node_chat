@@ -64,6 +64,7 @@ const initFriendsModel = (sequelize,DataTypes) => {
   Friend.getFriendsForUserWithID = async(id) => {
     const query = `
       SELECT id_user, username, online, allow_offline_messages
+        ,push_registration_token,push_notifications_enabled
       FROM Friend f
       INNER JOIN User u
       ON f.id_friend_with = u.id_user

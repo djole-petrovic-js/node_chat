@@ -1,16 +1,17 @@
 module.exports = (io) => {
-  const { db:{ User,Friend,Operation,Message } } = require('../Models/Models');
+  const { db:{ User,Friend,Message } } = require('../Models/Models');
   const users = {};
   const FCM = require('../libs/FCM');
 
   io.users = users;
   io.updateFriends = require('./io-updateFriends')(io,Friend);
   io.updateAOMstatus = require('./io-updateAOMStatus')(io,Friend);
-  io.emitOrSaveOperation = require('./io-emitOrSaveOperation')(io,User,Operation);
+  io.emitOrSaveOperation = require('./io-emitOrSaveOperation')(io,User);
   io.updateOnlineStatus = require('./io-updateOnlineStatus')(io,Friend);
   io.socketLockdown = require('./io-socketLockdown');
 
   io.on('connection',async(socket) => {
+    console.log('connected');
     const userID = socket.request.user.id;
 
     await io.socketLockdown.wait(userID);
@@ -39,9 +40,8 @@ module.exports = (io) => {
       friends:userFriends,
       user:user.get(),
       socket,
-      tempOperations:[]
     }
-    
+
     io.socketLockdown.unlock(userID,'connect');
 
     socket.on('new:message',async({ userID,message }) => {
@@ -52,10 +52,25 @@ module.exports = (io) => {
         // if user is online, attempt to send him message, or save operation
         // else store it in db so he can read it when online, if enabled
         if ( friend ) {
+          if ( friend.online === 0 && friend.allow_offline_messages === 0 ) {
+            return;
+          }
+
+          try {
+            await Message.create({
+              id_sending:senderID,
+              id_receiving:userID,
+              message
+            });
+          } catch(e) {
+            return io.to(users[senderID].socketID).emit('message:error');
+          }
+
           const { emited,user } = await io.emitOrSaveOperation(
             userID,
             'message:new-message',
-            { senderID,senderUsername,message },
+            { senderID,senderUsername,message,id_sending:senderID },
+            friend
           );
 
           if ( user.push_notifications_enabled && user.push_registration_token ) {
@@ -87,14 +102,6 @@ module.exports = (io) => {
 
           if ( !user.online ) {
             io.to(users[senderID].socketID).emit('message:user-not-online');
-
-            if ( friend.allow_offline_messages ) {
-              await Message.create({
-                id_sending:senderID,
-                id_receiving:userID,
-                message
-              });
-            }
           }
         } else {
           io.to(users[senderID].socketID).emit('message:not-in-friends-list');
@@ -105,18 +112,9 @@ module.exports = (io) => {
     });
 
     socket.on('disconnect',async() => {
+      console.log('disconected');
       try {
         const userID = socket.request.user.id;
-
-        if ( users[userID].tempOperations.length > 0 ) {
-          await Promise.all(users[userID].tempOperations.map(op => {
-            return Operation.create({
-              name:op.operationName,
-              data:JSON.stringify(op.data),
-              id_user:op.id_user
-            });
-          }));
-        }
 
         delete users[userID];
       } catch(e) {

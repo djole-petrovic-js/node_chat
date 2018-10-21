@@ -11,7 +11,7 @@ module.exports = function(io) {
   const validateDeviceInfo = require('../utils/validateDeviceInfo');
   const deviceInfoRules = require('../config/deviceInfo');
 
-  const { db:{ Operation,User,Friend,BannedEmail } } = require('../Models/Models');
+  const { sequelize,db:{ User,Friend,BannedEmail } } = require('../Models/Models');
 
   router.use(passport.authenticate('jwt',{ session:false }));
 
@@ -41,6 +41,63 @@ module.exports = function(io) {
 
 
 
+  router.get('/bundled_data',async(req,res,next) => {
+    try {
+      const sqlPending = `
+        SELECT id_user,username
+        FROM Friend f
+        INNER JOIN User u
+        ON f.id_friend_with = u.id_user
+        WHERE id_friend_is = ? AND confirmed = 0
+      `;
+
+      const sqlNotifications = `
+        SELECT id_notification,id_notification_type,username,id_user
+        FROM Notification n
+        INNER JOIN User u
+        ON n.notification_from = u.id_user
+        WHERE notification_to = ?
+      `;
+
+      const [ friends,pendingRequests,notifications,settings ] = await Promise.all([
+        Friend.getFriendsForUserWithID(req.user.id_user),
+        sequelize.query(sqlPending,{
+          replacements:[req.user.id_user],
+          type: sequelize.QueryTypes.SELECT
+        }),
+        sequelize.query(sqlNotifications,{
+          replacements:[req.user.id_user],
+          type: sequelize.QueryTypes.SELECT
+        }),
+        User.findOne({
+          raw:true,
+          attributes:[
+            'username','date_created',
+            'allow_offline_messages','pin',
+            'unique_device','pin_login_enabled',
+            'push_notifications_enabled'
+          ],
+          where:{ id_user:req.user.id_user },
+        })
+      ]);
+
+      settings.pin = !!settings.pin;
+
+      return res.json({
+        friends,
+        pendingRequests,
+        notifications,
+        settings
+      });
+    } catch(e) {
+      Logger.log(e,'users:bundled_data');
+
+      return next(genError('USERS_FATAL_ERROR'));
+    }
+  });
+
+
+
   router.post('/set_fcm_token',async(req,res,next) => {
     try {
       const token = req.body.token;
@@ -63,40 +120,6 @@ module.exports = function(io) {
     }
   });
 
-
-
-  router.get('/get_socket_operations',async(req,res,next) => {
-    try {
-      const operations = await Operation.all({
-        where:{ id_user:req.user.id_user }
-      });
-
-      return res.json({ success:true, operations });
-    } catch(e) {
-      Logger.log(e,'users:get_socket_operations');
-
-      return next(genError('USERS_FATAL_ERROR'));
-    }
-  });
-
-
-  router.post('/delete_operations',async(req,res,next) => {
-    try {
-      // if operation id is not sent, delete all operations
-      // else delete just one operation
-      const where = req.body.id_operation
-        ? { id_operation:req.body.id_operation,id_user:req.user.id_user }
-        : { id_user:req.user.id_user };
-
-      await Operation.destroy({ where });
-
-      return res.json({ success:true });
-    } catch(e) {
-      Logger.log(e,'users:delete_operations');
-
-      return next(genError('USERS_FATAL_ERROR'));
-    }
-  });
 
 
 
@@ -353,6 +376,8 @@ module.exports = function(io) {
 
       const friends = await Friend.getFriendsForUserWithID(req.user.id_user);
 
+      await BannedEmail.create({ banned_email:user.email });
+
       await Promise.all([
         User.destroy({
           where:{ id_user:req.user.id_user }
@@ -376,8 +401,6 @@ module.exports = function(io) {
           }
         }
       }
-
-      await BannedEmail.create({ banned_email:user.email });
 
       return res.json({ success:true });
     } catch(e) {

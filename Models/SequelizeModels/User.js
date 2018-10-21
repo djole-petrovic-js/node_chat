@@ -115,17 +115,6 @@ const initUserModel = (sequelize,DataTypes) => {
     user.password = await new Password(user.password).hashPassword();
   });
 
-  User.associate = (models) => {
-    User.hasMany(models.Operation,{
-      foreignKey:{
-        name:'id_user',
-        targetKey: 'id_user',
-        allowNull:false
-      },
-      onDelete:'cascade'
-    });
-  }
-
   return User;
 }
 

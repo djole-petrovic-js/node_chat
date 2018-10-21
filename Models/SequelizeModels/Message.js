@@ -22,6 +22,14 @@ const initMessageModel = (sequelize,DataTypes) => {
       type:DataTypes.DATE,
       defaultValue:DataTypes.NOW,
       allowNull:false
+    },
+    num_of_deletions:{
+      type:DataTypes.INTEGER,
+      defaultValue:0
+    },
+    id_user_deleted:{
+      type:DataTypes.INTEGER,
+      defaultValue:0
     }
   },{
     timestamps:false,
