@@ -16,7 +16,7 @@ module.exports = (io) => {
   const validateDeviceInfo = require('../utils/validateDeviceInfo');
   const deviceInfoRules = require('../config/deviceInfo');
 
-  const { db:{ User } } = require('../Models/Models');
+  const { db:{ User,Operation } } = require('../Models/Models');
 
   const emailPasswordSchema = {
     type:'object',
@@ -298,7 +298,12 @@ module.exports = (io) => {
         where:{ id_user:req.user.id_user }
       });
 
-      await io.updateOnlineStatus(req.user.id_user,req.body.status);
+      await Promise.all([
+        io.updateOnlineStatus(req.user.id_user,req.body.status),
+        Operation.destroy({
+          where:{ id_user:req.user.id_user }
+        })
+      ]);
 
       return res.json({ success:true });
     } catch(e) {

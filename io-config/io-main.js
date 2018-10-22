@@ -1,17 +1,17 @@
 module.exports = (io) => {
-  const { db:{ User,Friend,Message } } = require('../Models/Models');
+  const { db:{ User,Friend,Message,Operation } } = require('../Models/Models');
   const users = {};
   const FCM = require('../libs/FCM');
 
   io.users = users;
   io.updateFriends = require('./io-updateFriends')(io,Friend);
   io.updateAOMstatus = require('./io-updateAOMStatus')(io,Friend);
-  io.emitOrSaveOperation = require('./io-emitOrSaveOperation')(io,User);
+  io.emitOrSaveOperation = require('./io-emitOrSaveOperation')(io,User,Operation);
   io.updateOnlineStatus = require('./io-updateOnlineStatus')(io,Friend);
   io.socketLockdown = require('./io-socketLockdown');
 
   io.on('connection',async(socket) => {
-    console.log('connected');
+    console.log('conected11;');
     const userID = socket.request.user.id;
 
     await io.socketLockdown.wait(userID);
@@ -24,7 +24,7 @@ module.exports = (io) => {
       socket.emit('new_token',{ token:socket.request.user.newToken });
     }
 
-    const [ userFriends,user ] = await Promise.all([
+    const [ userFriends,user,operations ] = await Promise.all([
       Friend.getFriendsForUserWithID(userID),
       User.findOne({
         attributes:[
@@ -33,6 +33,9 @@ module.exports = (io) => {
         ],
         where:{ id_user:userID },
       }),
+      Operation.findAll({
+        where:{ id_user:userID }
+      })
     ]);
 
     users[userID] = {
@@ -40,6 +43,17 @@ module.exports = (io) => {
       friends:userFriends,
       user:user.get(),
       socket,
+      tempOperations:[]
+    }
+
+    if ( operations.length > 0 ) {
+      socket.emit('operations:new_operations', { operations });
+
+      Operation.destroy({
+        where:{
+          id_operation:operations.map(x => x.id_operation)
+        }
+      });
     }
 
     io.socketLockdown.unlock(userID,'connect');
@@ -70,7 +84,6 @@ module.exports = (io) => {
             userID,
             'message:new-message',
             { senderID,senderUsername,message,id_sending:senderID },
-            friend
           );
 
           if ( user.push_notifications_enabled && user.push_registration_token ) {
@@ -115,6 +128,16 @@ module.exports = (io) => {
       console.log('disconected');
       try {
         const userID = socket.request.user.id;
+
+        if ( users[userID].tempOperations.length > 0 ) {
+          await Promise.all(users[userID].tempOperations.map(op => {
+            return Operation.create({
+              name:op.operationName,
+              data:JSON.stringify(op.data),
+              id_user:op.id_user
+            });
+          }));
+        }
 
         delete users[userID];
       } catch(e) {

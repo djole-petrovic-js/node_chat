@@ -1,16 +1,22 @@
-const FCM = require('../libs/FCM');
-
-const emitOrSaveOperation = (io,User) => async(userID,operationName,data,user) => {
+const emitOrSaveOperation = (io,User,Operation) => async(userID,operationName,data,user) => {
   try {
     if ( io.users[userID] ) {
-      io.users[userID].socket.emit(operationName,data);
-
+      const tempOperation = { operationName, data, id_user:userID };
+  
+      io.users[userID].tempOperations.push(tempOperation);
+  
+      io.users[userID].socket.emit(operationName,data,() => {
+        const index = io.users[userID].tempOperations.findIndex(x => {
+          return x === tempOperation;
+        });
+  
+        io.users[userID].tempOperations.splice(index,1);
+      });
+  
       return { emited:true,saved:false,user:io.users[userID].user };
     }
 
-    const tempOperation = { operationName, data:JSON.stringify(data) };
-
-    if ( !user || !user.push_registration_token ) {
+    if ( !user ) {
       user = await User.findOne({
         attributes:[
           'id_user','online','push_registration_token',
@@ -20,15 +26,17 @@ const emitOrSaveOperation = (io,User) => async(userID,operationName,data,user) =
       });
     }
 
-    if ( user.online && user.push_registration_token) {
-      await FCM.send(user.push_registration_token,{
-        data:tempOperation
-      },{
-        priority:'high'
+    if ( user.online ) {
+      await Operation.create({
+        name:operationName,
+        data:JSON.stringify(data),
+        id_user:user.id_user
       });
-    }
 
-    return { emited:false,saved:true,user };
+      return { emited:false,saved:true,user };
+    }
+  
+    return { emited:false,saved:false,user };
   } catch(e) {
     await global.Logger.log(e,'socket_io:emit_or_save');
     await global.Logger.log('For op : ' + operationName,'socket_io:emit_or_save');

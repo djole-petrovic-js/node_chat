@@ -11,7 +11,7 @@ module.exports = function(io) {
   const validateDeviceInfo = require('../utils/validateDeviceInfo');
   const deviceInfoRules = require('../config/deviceInfo');
 
-  const { sequelize,db:{ User,Friend,BannedEmail } } = require('../Models/Models');
+  const { sequelize,db:{ User,Friend,BannedEmail,Operation } } = require('../Models/Models');
 
   router.use(passport.authenticate('jwt',{ session:false }));
 
@@ -91,6 +91,26 @@ module.exports = function(io) {
       });
     } catch(e) {
       Logger.log(e,'users:bundled_data');
+
+      return next(genError('USERS_FATAL_ERROR'));
+    }
+  });
+
+
+
+  router.post('/delete_operations',async(req,res,next) => {
+    try {
+      // if operation id is not sent, delete all operations
+      // else delete just one operation
+      const where = req.body.id_operation
+        ? { id_operation:req.body.id_operation,id_user:req.user.id_user }
+        : { id_user:req.user.id_user };
+
+      await Operation.destroy({ where });
+
+      return res.json({ success:true });
+    } catch(e) {
+      Logger.log(e,'users:delete_operations');
 
       return next(genError('USERS_FATAL_ERROR'));
     }

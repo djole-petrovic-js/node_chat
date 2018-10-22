@@ -6,7 +6,7 @@ module.exports = function(io) {
     Types    = require('../libs/types'),
     router   = require('express').Router();
 
-  const { sequelize,db:{ Notification,Friend } } = require('../Models/Models');
+  const { sequelize,db:{ Notification,Friend,Operation } } = require('../Models/Models');
 
   router.use(passport.authenticate('jwt',{ session:false }));
 
@@ -75,6 +75,20 @@ module.exports = function(io) {
           notification_to:req.body.id_user
         }
       });
+
+      const operation = await Operation.findOne({
+        where:{
+          name:'notification:new-notification',
+          id_user:req.body.id_user,
+          data:{
+            [sequelize.Op.like]:`%"id_user":${req.user.id_user}%`
+          }
+        }
+      });
+
+      if ( operation ) {
+        await operation.destroy();
+      }
 
       if ( notification ) {
         await notification.destroy();
