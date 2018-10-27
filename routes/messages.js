@@ -31,6 +31,11 @@ router.post('/get_messages',async(req,res,next) => {
 
     const sql = `
       SELECT *
+        id_message,
+        id_receiving,
+        id_sending,
+        message,
+        date
       FROM Message
       WHERE id_sending in (?,?)
         AND id_receiving in (?,?)

@@ -160,6 +160,19 @@ router.post('/',async (req,res,next) => {
       return res.json({ errorCode:'REGISTER_EMAIL_BANNED' });
     }
 
+    // check if account is already made from this devices
+    const accountFromDeviceExists = await User.findOne({
+      where:{
+        device_uuid:req.body.deviceInfo.uuid,
+        device_serial:req.body.deviceInfo.serial,
+        device_manufacturer:req.body.deviceInfo.manufacturer
+      }
+    });
+
+    if ( accountFromDeviceExists ) {
+      return res.json({ errorCode:'REGISTER_DEVICE_EXISTS' });
+    }
+
     const info = await checkIfUsernameOrEmailExists({
       username:req.body.username,
       email:req.body.email

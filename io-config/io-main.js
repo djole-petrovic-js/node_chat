@@ -11,7 +11,6 @@ module.exports = (io) => {
   io.socketLockdown = require('./io-socketLockdown');
 
   io.on('connection',async(socket) => {
-    console.log('conected11;');
     const userID = socket.request.user.id;
 
     await io.socketLockdown.wait(userID);
@@ -94,7 +93,8 @@ module.exports = (io) => {
                     sound:'default',
                     title:senderUsername,
                     body:message,
-                    tag:senderUsername
+                    tag:senderUsername,
+                    icon:'icon'
                   },
                   data:{
                     username:senderUsername,
@@ -103,6 +103,7 @@ module.exports = (io) => {
                 },{
                   sound:'default',
                   priority:'high',
+                  icon:'icon',
                   collapseKey:socket.request.user.username,
                 });
               } catch(e) {
@@ -125,7 +126,6 @@ module.exports = (io) => {
     });
 
     socket.on('disconnect',async() => {
-      console.log('disconected');
       try {
         const userID = socket.request.user.id;
 
