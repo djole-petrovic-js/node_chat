@@ -23,7 +23,7 @@ module.exports = (io) => {
       socket.emit('new_token',{ token:socket.request.user.newToken });
     }
 
-    const [ userFriends,user,operations ] = await Promise.all([
+    let [ userFriends,user,operations ] = await Promise.all([
       Friend.getFriendsForUserWithID(userID),
       User.findOne({
         attributes:[
@@ -46,13 +46,28 @@ module.exports = (io) => {
     }
 
     if ( operations.length > 0 ) {
-      socket.emit('operations:new_operations', { operations });
+      Operation.destroy({ where:{ id_operation:operations.map(x => x.id_operation) } });
 
-      Operation.destroy({
-        where:{
-          id_operation:operations.map(x => x.id_operation)
+      let lastLoginLogoutID = null;
+
+      for ( let i = operations.length - 1 ; i >= 0 ; i-- ) {
+        if ( ['friend:login','friend:logout'].indexOf(operations[i].name) !== -1 ) {
+          lastLoginLogoutID = operations[i].id_operation;
+          break;
         }
-      });
+      }
+  
+      if ( lastLoginLogoutID ) {
+        operations = operations.filter(op => {
+          if ( op.name === 'friend:login' || op.name === 'friend:logout' ) {
+            return op.id_operation === lastLoginLogoutID;
+          }
+
+          return true;
+        });
+      }
+
+      socket.emit('operations:new_operations', { operations });
     }
 
     io.socketLockdown.unlock(userID,'connect');

@@ -30,7 +30,7 @@ router.post('/get_messages',async(req,res,next) => {
     const forUserWithID = req.body.id;
 
     const sql = `
-      SELECT *
+      SELECT
         id_message,
         id_receiving,
         id_sending,
