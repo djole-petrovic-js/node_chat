@@ -10,7 +10,9 @@ const sequelize = new Sequelize(
   process.env.DB_PASSWORD,{
     operatorsAliases: Op,
     dialect:'mysql',
-    logging:false
+    logging:false,
+    charset:'utf8',
+    collate:'utf8_general_ci',
   },
 );
 

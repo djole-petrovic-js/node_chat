@@ -91,6 +91,8 @@ module.exports = (io) => {
               message
             });
           } catch(e) {
+            global.Logger.log(e,'socket_io:main');
+
             return io.to(users[senderID].socketID).emit('message:error');
           }
 
@@ -109,7 +111,7 @@ module.exports = (io) => {
                     title:senderUsername,
                     body:message,
                     tag:senderUsername,
-                    icon:'icon'
+                    //icon:'icon'
                   },
                   data:{
                     username:senderUsername,
@@ -118,7 +120,7 @@ module.exports = (io) => {
                 },{
                   sound:'default',
                   priority:'high',
-                  icon:'icon',
+                  //icon:'icon',
                   collapseKey:socket.request.user.username,
                 });
               } catch(e) {
