@@ -104,7 +104,11 @@ const initUserModel = (sequelize,DataTypes) => {
       type:DataTypes.STRING(30),
       allowNull:true,
       defaultValue:null
-    }
+    },
+    pin_unlock_device_enabled:{
+      type:DataTypes.BOOLEAN,
+      defaultValue:0
+    },
   },{
     freezeTableName:true,
     tableName:'User',
