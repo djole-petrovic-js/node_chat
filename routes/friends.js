@@ -204,35 +204,23 @@ module.exports = function(io) {
         })
       ]);
 
-      await io.emitOrSaveOperation(
-        idTo,
-        'notification:new-notification',
-        {
-          id_notification:resultNotification.id_notification,
-          id_notification_type:1,
-          id_user:idFrom,
-          username:req.user.username
-        }
-      );
-
-      const user = await User.findOne({ where:{ id_user:idTo } });
-
-      if ( user.push_notifications_enabled && user.push_registration_token ) {
-        try {
-          await FCM.send(user.push_registration_token,{
-            notification:{
-              sound:'default',
-              title:'Friend Request',
-              body:`${ req.user.username } has sent you a friend request.`,
-            },
-          },{
-            sound:'default',
-            priority:'high',
-          });
-        } catch(e) {
-          Logger.log(e,'friends:add_friend');
-        }
-      }
+      await Promise.all([
+        io.emitOrSaveOperation(
+          idTo,
+          'notification:new-notification',
+          {
+            id_notification:resultNotification.id_notification,
+            id_notification_type:1,
+            id_user:idFrom,
+            username:req.user.username
+          }
+        ),
+        FCM.sendWithUserPermissionChecking({
+          id:idTo,
+          title:'Friend Request',
+          body:`${ req.user.username } has sent you a friend request.`
+        })
+      ]);
 
       return res.send({ success:true });
     } catch(e) {
@@ -363,30 +351,18 @@ module.exports = function(io) {
         type:sequelize.QueryTypes.SELECT
       });
 
-      await io.emitOrSaveOperation(
-        idUserToAdd,
-        'notification:new-notification',
-        newNotification
-      );
-
-      const user = await User.findOne({ where:{ id_user:idUserToAdd } });
-
-      if ( user.push_notifications_enabled && user.push_registration_token ) {
-        try {
-          await FCM.send(user.push_registration_token,{
-            notification:{
-              sound:'default',
-              title:'Friend Request',
-              body:`${ req.user.username } has confirmed your friend request.`,
-            },
-          },{
-            sound:'default',
-            priority:'high',
-          });
-        } catch(e) {
-          Logger.log(e,'friends:confirm_friend');
-        }
-      }
+      await Promise.all([
+        io.emitOrSaveOperation(
+          idUserToAdd,
+          'notification:new-notification',
+          newNotification
+        ),
+        FCM.sendWithUserPermissionChecking({
+          id:idUserToAdd,
+          title:'Friend Request',
+          body:`${ req.user.username } has confirmed your friend request.`
+        })
+      ])
 
       return res.json({ success:true });
     } catch(e) {
