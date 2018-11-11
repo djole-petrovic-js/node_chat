@@ -84,6 +84,8 @@ module.exports = (io) => {
             return;
           }
 
+          const date = new Date().toISOString();
+
           try {
             await Message.create({
               id_sending:senderID,
@@ -99,7 +101,13 @@ module.exports = (io) => {
           const { emited,user } = await io.emitOrSaveOperation(
             userID,
             'message:new-message',
-            { senderID,senderUsername,message,id_sending:senderID },
+            {
+              senderID,
+              senderUsername,
+              message,
+              id_sending:senderID,
+              date
+            },
           );
 
           if ( user.push_notifications_enabled && user.push_registration_token ) {

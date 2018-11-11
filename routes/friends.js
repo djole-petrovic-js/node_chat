@@ -4,9 +4,10 @@ module.exports = function(io) {
     Logger   = require('../libs/Logger'),
     genError = require('../utils/generateError'),
     Types    = require('../libs/types'),
+    FCM      = require('../libs/FCM'),
     router   = require('express').Router();
 
-  const { sequelize,db:{ Notification,Friend,Operation } } = require('../Models/Models');
+  const { sequelize,db:{ Notification,Friend,Operation,User } } = require('../Models/Models');
 
   router.use(passport.authenticate('jwt',{ session:false }));
 
@@ -214,6 +215,25 @@ module.exports = function(io) {
         }
       );
 
+      const user = await User.findOne({ where:{ id_user:idTo } });
+
+      if ( user.push_notifications_enabled && user.push_registration_token ) {
+        await FCM.send(user.push_registration_token,{
+          notification:{
+            sound:'default',
+            title:'Friend Request',
+            body:`${ req.user.username } has sent you a friend request.`,
+          },
+          data:{
+            username:senderUsername,
+            message
+          }
+        },{
+          sound:'default',
+          priority:'high',
+        });
+      }
+
       return res.send({ success:true });
     } catch(e) {
       Logger.log(e,'friends:add_friend');
@@ -348,6 +368,25 @@ module.exports = function(io) {
         'notification:new-notification',
         newNotification
       );
+
+      const user = await User.findOne({ where:{ id_user:idUserToAdd } });
+
+      if ( user.push_notifications_enabled && user.push_registration_token ) {
+        await FCM.send(user.push_registration_token,{
+          notification:{
+            sound:'default',
+            title:'Friend Request',
+            body:`${ req.user.username } has sent you a friend request.`,
+          },
+          data:{
+            username:senderUsername,
+            message
+          }
+        },{
+          sound:'default',
+          priority:'high',
+        });
+      }
 
       return res.json({ success:true });
     } catch(e) {
