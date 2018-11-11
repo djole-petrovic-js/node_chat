@@ -218,20 +218,20 @@ module.exports = function(io) {
       const user = await User.findOne({ where:{ id_user:idTo } });
 
       if ( user.push_notifications_enabled && user.push_registration_token ) {
-        await FCM.send(user.push_registration_token,{
-          notification:{
+        try {
+          await FCM.send(user.push_registration_token,{
+            notification:{
+              sound:'default',
+              title:'Friend Request',
+              body:`${ req.user.username } has sent you a friend request.`,
+            },
+          },{
             sound:'default',
-            title:'Friend Request',
-            body:`${ req.user.username } has sent you a friend request.`,
-          },
-          data:{
-            username:senderUsername,
-            message
-          }
-        },{
-          sound:'default',
-          priority:'high',
-        });
+            priority:'high',
+          });
+        } catch(e) {
+          Logger.log(e,'friends:add_friend');
+        }
       }
 
       return res.send({ success:true });
@@ -372,20 +372,20 @@ module.exports = function(io) {
       const user = await User.findOne({ where:{ id_user:idUserToAdd } });
 
       if ( user.push_notifications_enabled && user.push_registration_token ) {
-        await FCM.send(user.push_registration_token,{
-          notification:{
+        try {
+          await FCM.send(user.push_registration_token,{
+            notification:{
+              sound:'default',
+              title:'Friend Request',
+              body:`${ req.user.username } has confirmed your friend request.`,
+            },
+          },{
             sound:'default',
-            title:'Friend Request',
-            body:`${ req.user.username } has sent you a friend request.`,
-          },
-          data:{
-            username:senderUsername,
-            message
-          }
-        },{
-          sound:'default',
-          priority:'high',
-        });
+            priority:'high',
+          });
+        } catch(e) {
+          Logger.log(e,'friends:confirm_friend');
+        }
       }
 
       return res.json({ success:true });
