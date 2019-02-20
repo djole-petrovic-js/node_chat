@@ -76,7 +76,8 @@ module.exports = function(io) {
             'username','date_created',
             'allow_offline_messages','pin',
             'unique_device','pin_login_enabled',
-            'push_notifications_enabled'
+            'push_notifications_enabled',
+            'pin_unlock_device_enabled'
           ],
           where:{ id_user:req.user.id_user },
         })

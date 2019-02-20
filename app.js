@@ -52,6 +52,10 @@ app.use(passport.initialize());
 
 passport.use(require('./utils/passport/passport-strategy'));
 
+app.get('/privacy_policy',(req,res) => {
+  res.sendFile(path.join(__dirname,'views','privacy_policy.html'));
+});
+
 // API Routes
 app.use('/api/register',register);
 app.use('/api/login',login);
